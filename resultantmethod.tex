@@ -32,10 +32,274 @@
 \maketitle
 
 \begin{abstract}
+Ordering line-quadric intercepts at precisions greater than the input
+precision by comparing the parameters $t_i$ corresponding to the
+intercepts of the line can result in significant error.  Increasing
+the precision of the computations to reduce error reduces this error,
+but significantly increases the computational work required.
 \end{abstract}
 
 \section{Introduction}
 \section{Method}
+\subsection{Resultant Method}
+Another method for computing the order of two intersections involves
+computing the resultant for their respective polynomials.  The
+resultant of two polynomials can be computed by taking the determinant
+of the Sylvester Matrix.  The Sylvester Matrix for polynomials
+$P(t)=p_m t^m + \dots + p_0$ and $Q(t)=q_n t^n + \dots + q_0$ is
+defined in Equation \ref{eq:sylv}.
+\begin{equation}
+  S_{PQ}=\begin{pmatrix}
+    p_m & \dots & & p_0 & 0 & & 0\\
+    0 & p_m & \dots & & p_0 & & 0\\
+    & \ddots & & & & \ddots\\
+    0 & 0 & & p_m & \dots & & p_0\\
+    q_n & \dots & & q_0 & 0 & & 0\\
+    0 & q_n & \dots & & q_0 & & 0\\
+    & \ddots & & & & \ddots\\
+    0 & & q_n & \dots & & q_0\\
+  \end{pmatrix}
+  \label{eq:sylv}
+\end{equation}
+where $P$ and $Q$ are polynomials of one parameter and with orders $m$
+and $n$, respectively \cite[Section~3.5]{cheeyap}.
+
+The determinant of the Sylvester matrix is defined to be the resultant
+of the two polynomials.  Given the roots $a_i$, $b_i$ of $P$ and $Q$,
+respectively, the resultant can also be computed as shown in Equation
+\ref{eq:resultant}. \cite[Section~6.4]{cheeyap}.
+\begin{equation}
+  res(P, Q)=p_m^n q_n^m \prod_{i=1}^m\prod_{j=1}^n (a_i-b_j)
+  \label{eq:resultant}
+\end{equation}
+
+The two methods of computing the resultant provides us with an extra
+method of computing the sign of one of the differences of the two
+roots.  Since I are concerned only with the signs of the differences,
+the actual value doesn't matter.  Thus, if one of the differences is
+too close to zero for comfort, I can compute the correct sign for it
+from the signs of the other differences and the sign of the
+determinant.  I can then use Equation \ref{eq:resultant} to write
+Equation \ref{eq:signresult}.
+
+\begin{equation}
+  \sign(res(P, Q)) =
+  \sign(p_m^n)\sign(q_n^m)\prod_{i=2}^m\prod_{j=1}^n[\sign(a_i-b_j)]
+  \label{eq:signresult}
+\end{equation}
+
+Without loss of generality, let us be concerned with the sign of
+$a_1-b_1$.  I can then solve for the sign of $a_1-b_1$ to be
+
+\begin{equation*}
+  \sign(a_1-b_1)=\sign(res(P, Q))\sign(p_m^n)\sign(q_n^m)
+  \prod_{i=2}^m\prod_{j=2}^n[\sign(a_i-b_j)\sign(a_1-b_j)\sign(a_i-b_1)]
+  \label{eq:signroot}
+\end{equation*}
+
+For simplicity of computation, instead of performing many
+multiplications, I need to count only the number of negatives on the
+right hand side of this equation.  If there are an even number of
+negatives, then the undetermined sign will be positive.  If there are
+an odd number of negatives, the undetermined sign will be negative.
+Since I are concerned with the intersections of lines with quadric
+surfaces, I know our polynomials will be of order $2$, and thus that
+the signs of $p_2^2$ and $q_2^2$ will be positive and can be ignored.
+
+A notable limitation of this method is that it assumes that all the
+signs on the right are known and trusted.  Furthermore, if any of the
+known differences are zero, this method will not work.  Though there
+are methods which can be used in these instances, they are not related
+to the resultant method.  Despite its limitations, the resultant
+method as described does have benefits over the traditional method of
+simply increasing precision.
+
+It should be immediately apparent that computing the determinant can
+be done more cheaply than computing the differences of roots of the
+polynomials.  Computing the roots of the polynomials requires seven
+additions and multiplications, plus the expensive square root and two
+divisions.  For reference, it has been shown that a square root costs
+approximately the same number of operations as $\frac{3}{2}$ additions
+at the same precision \cite{karatsuba}.  To compute the roots, two
+multiplications and an addition are computed at 6 times the precision
+of the input.  The square root and two additions are computed at 12
+times the initial precision.  The two divisions are computed at 24
+times the initial precision.  To actually perform the comparison, one
+final subtraction is required at 24 times the initial precision. This
+means each comparison requires only 1 FLOP, with an initialization
+cost of 10 FLOPs per intersection.
+
+On the other hand, computing a determinant of a 4x4 matrix costs about
+120 multiplications.  This is clearly too expensive, so I specialize
+for the Sylvester matrix.  Computing the determinant of the Sylvester
+matrix itself would naively take $35$ FLOPs for each comparison.  I
+can do better by computing the per-polynomial values shown in Equation
+\ref{eq:sylvpoly}.  Since these values are solely determined by one of
+the polynomial's coefficients, I compute these once at first use, and
+store them for whenever I need to make future comparisons.  This
+brings us to 11 FLOPs per comparison, with an initialization cost of 7
+FLOPs per intersection.  This appears more expensive, but the
+reduction in precision requirements and the lack of expensive square
+roots and divisions results in significant savings.
+\begin{figure*}
+  \begin{equation*}
+    \Delta=\begin{vmatrix}
+    a_1 & b_1 & c_1 & 0\\
+    0 & a_1 & b_1 & c_1\\
+    a_2 & b_2 & c_2 & 0\\
+    0 & a_2 & b_2 & c_2\\
+    \end{vmatrix}=
+    a_1^2 c_2^2 + c_1^2 a_2^2 + b_1^2 a_2 c_2 + b_2^2 a_1 c_1 -
+    b_1 c_1 a_2 b_2 - a_1 b_1 b_2 c_2 - 2 a_1 c_1 a_2 c_2
+  \end{equation*}
+  \begin{align}
+    \alpha_i=a_i^2,\,\, \gamma_i=c_i^2,\,\,
+    \delta_i=a_i b_i,\,\, \epsilon_i=a_i c_i,\,\, \zeta_i=b_i c_i,\,\,
+    D_i=b_i^2-\epsilon_i,\,\,
+    i\in {1, 2}\\
+    \Delta = \alpha_1 \gamma_2 + \gamma_1 \alpha_2 +
+    D_1 \epsilon_2 + \epsilon_1 D_2 - \zeta_1 \delta_2 -
+    \delta_1 \zeta_2
+  \label{eq:sylvpoly}
+  \end{align}
+\end{figure*}
+% CITE/Proof needed!!!
+This reduction theoretically makes this method slightly cheaper than
+computing the roots of the polynomial at higher precision.  Computing
+the determinant this way always requires six multiplications and five
+additions at 12 times the precision of the input.  Computing the
+per-polynomial values requires six multiplications and one subtraction
+at 6 times the precision of the input.
+
+Since I are concerned only with the signs of the differences of
+roots, no evaluation of the product of the known differences of the
+roots is needed.  Thus, no other increase of precision is required for
+the computation of the sign of the difference of the final pair of
+roots.
+
+\subsection{Evaluation of the Resultant Method}
+The increased precision and resultant methods were implemented in a
+C++ program for evaluation.  MPFR was used to implement the increased
+precision in both cases.
+
+To ensure the results from both methods were consistent, the ordered
+lists of roots were divided into regions based on a relative threshold
+heuristic.  This heuristic put an upper limit on the largest bit that
+could change in a single region.  To compensate for gradual changes in
+a region, this heuristic depended only on the largest root seen in the
+region to this point.  If the number of roots in the region was
+different for the two methods, the results are listed as possibly
+being erroneous.  Note that this method does not verify that the
+regions contain the same quadrics; as the quadrics in each region can
+vary based on the order of previously seen quadrics.
+
+To compare the methods, several scenes of quadric surfaces were
+created.  These scenes were composed of surfaces which were mostly
+constrained within the unit cube centered at $(0.5, 0.5, 0.5)$.  To
+actually perform the tests, 10000 random lines were generated.  These
+lines were generated with intercepts positioned to make close
+intersections more likely.  For most scenes, this was done by
+constraining the intercept within the unit cube.  For the case of the
+intersection of two orthogonal cylinders, this was positioned inside
+of the two cylinders near the plane containing their intersection
+curve.  In specific scenes like this, the direction of the line was
+also constrained to further increase the probability of two
+intersections being computed in the wrong order.
+
+Once the line was generated, the intersections and their order were
+computed along with some statistics.  These statistics were the amount
+of time the sorting process took, the number of comparisons made at
+higher precision, and whether the results of the two algorithms
+approximately matched.  The C++ STL sort function was used to sort the
+computed list of intersections, and the POSIX clock\_gettime function
+was used for timing.  This is not an entirely fair comparison, for
+several reasons.
+
+The first is that the naive parameter comparison method would always
+compute the increased precision result, regardless of whether it was
+necessary.  This is unfair because it avoids the step of determining
+whether the increase was actually necessary, which would be performed
+in a real system.  In our testing setup, the threshold used to decide
+whether the increased precision is necessary was set to infinity,
+meaning the precision will always be increased in the resultant method
+as well.  This skews the results slightly in favor of the naive
+method.
+
+The second issue with the comparison is that the resultant method
+cannot always be used.  The resultant method can be used only when two
+polynomials do not share roots.  It also requires that only one sign
+be ambiguous.  Furthermore, though the resultant can be used to
+compute the order of intersections for an arbitrary number of roots,
+I have only implemented it for the case of $2$ (possibly repeated)
+roots for both polynomials.  This means that the line must intersect
+the surface twice for this method to be usable.
+
+For the sake of performance comparisons, the first two limitations on
+the resultant method can be ignored.  This is because our tests here
+are for speed more than accuracy.  The third issue cannot be ignored,
+but can be avoided in the construction of our test scenes.  Any scene
+which is used to evaluate the speed of the resultant method in our
+test must ensure a line will either intersect a surface twice, or
+intersect it once with a multiplicity of two.  This is guaranteed for
+most surfaces, but can occur on rare occasion with parabolic
+cylinders, hyperbolic paraboloids, and elliptic paraboloids.  To
+prevent this issue from occurring, I do not include these types of
+quadric surfaces in our test scenes.  I also do not include any
+linear planes in our scenes.
+
+To analyze the results, I computed the least squares linear fit of
+the timing data.  For the Test Cylinders and Packed Ellipsoids, I
+used the number of comparisons made as our independent variable, and
+computed a linear coefficient for it along with a constant term.  For
+the sets of Centered Ellipsoids and Aligned Cylinders, I was able to
+aggregate the test results for each type of scene.  This allowed us to
+fit the line to two independent variables; the number of comparisons
+made, and the number of quadric surfaces in the scene.  Fitting the
+time it takes to make a comparison to a linear relationship makes
+sense, as the bulk of the sorting time is taken up by performing these
+comparisons.  It also makes sense for the time to be linearly related
+to the number of quadrics in the scene, as the cached values are only
+computed once for each quadric, and are likely to significantly affect
+the time a comparison takes.
+
+\section{Test Hardware}
+Three computers were used to test the implementations.  The first
+computer has a Core i3 M370 processor with 2 cores and a 3 MB cache.
+This processor does provide not a hardware implementation of FMA.
+This computer has 4 GB of DDR3 memory clocked at 1 GHz.  It is running
+an up to date installation of Arch Linux with version 4.4 of the
+kernel.  GCC 5.3 was used to compile the code for these tests.  For
+these tests, the performance manager was set to keep the CPU clock at
+2.4 GHz, and the process was run with a nice value of -20.
+
+The second computer has two Xeon E5-2643 processors with 4 cores and
+10 MB caches.  This processor does not provide a hardware
+implementation of FMA.  This computer has 32 GB of DDR3 memory running
+with a 1.6 GHz clock.  It is running Ubuntu 14.04 with version 3.13 of
+the kernel, and uses GCC 5.2 to compile the code for these tests.
+These tests were run with the default performance manager with a
+maximum CPU clock of 3.3 GHz, along with a nice value of -20.
+
+The third computer has a Core 2 Duo E6550 processor with two cores and
+a 4 MB cache.  This processor does not provide a hardware
+implementation of FMA.  This computer has 8 GB of DDR2 memory clocked
+at 667 MHz.  It is running an up to date installation of Gentoo Linux
+with version 4.0 of the kernel.  GCC 5.3 was used to compile the code
+for these tests.  For these tests, the performance manager was set to
+keep the CPU clock at 2.3 GHz, with a nice value of -20.
+
+To get a better estimate of the relative performance of the two
+computers, the Geekbench benchmark was employed to estimate the
+processor speeds.  The Ubuntu computer had a single core floating
+point score of 2730.  The Arch computer had a single core floating
+point score of 1702.  The Gentoo computer had a single core floating
+point score of 1408.  On average, the Ubuntu computer was capable of
+about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
+FLOPS than the Gentoo computer.
+
 \section{Results}
 \section{Conclusion}
+
+\bibliographystyle{plain}
+\bibliography{resultantmethod}
 \end{document}
