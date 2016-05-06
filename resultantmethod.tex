@@ -35,12 +35,31 @@
 Ordering line-quadric intercepts at precisions greater than the input
 precision by comparing the parameters $t_i$ corresponding to the
 intercepts of the line can result in significant error.  Increasing
-the precision of the computations to reduce error reduces this error,
-but significantly increases the computational work required.
+the precision the computations reduces this error, but significantly
+increases the computational work required.
+
+Given a line and a set of quadric surfaces, we develop an algorithm
+that correctly computes the order in which the line intersects the
+quadric surfaces at half the precision required by the parameter
+comparison algorithm.
 \end{abstract}
 
 \section{Introduction}
+A line-quadric intersection is a point~$p=(x, y, z)$ computable from
+the parametric line equation $l(t)=(m_x t + c_x, m_y t + c_y, m_z t +
+c_z)$ that satisfies the quadric surface equation $Q(x, y, z)=q_{xx}
+x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 + q_{z} z +
+q_c = 0$.  The parameter of the line specifying the point of
+intersection can be computed by finding the roots of $Q(l(t))=a t^2 -
+2 b t + c$.  This is easiest to do with the quadratic equation, but
+this method has issues with correctness when performed at the same
+precision as the coefficients of the input line and quadric surfaces.
+
+The correctness of the computed parameter can be resolved by
+increasing the precision of the intermediate computations.
+
 \section{Method}
+\subsection{Parameter Comparison Method}
 \subsection{Resultant Method}
 Another method for computing the order of two intersections involves
 computing the resultant for their respective polynomials.  The
