@@ -2,7 +2,6 @@
 \documentclass{cccg16}
 
 \usepackage{amssymb, amsmath}
-\usepackage{fullpage}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
@@ -21,8 +20,9 @@
 \lstset{basicstyle=\ttfamily}
 
 \title{Low Order Comparison of Line-Quadric Intercepts}
-\author{Michael Deakin \and
-  Jack Snoeyink\thanks{School of Computer Science, University of North Carolina Chapel Hill, {\tt mfdeakin@cs.unc.edu}, {\tt jsnoeyink@cs.unc.edu}}}
+\author{Michael Deakin \and Jack Snoeyink\thanks{School of Computer
+    Science, University of North Carolina at Chapel Hill, {\tt
+      mfdeakin@cs.unc.edu}, {\tt jsnoeyink@cs.unc.edu}}}
 
 \index{Deakin, Michael}
 \index{Snoeyink, Jack}
@@ -55,11 +55,24 @@ intersection can be computed by finding the roots of $Q(l(t))=a t^2 -
 this method has issues with correctness when performed at the same
 precision as the coefficients of the input line and quadric surfaces.
 
-The correctness of the computed parameter can be resolved by
-increasing the precision of the intermediate computations.
+Correctness in this case is defined for a particular set of inputs.
+Specifically, a computation is said to be correct if for all inputs
+which are integers when multiplied by $2^e$ and are less $2^p$, the
+rounded result of a series of additions, multiplications, divisions,
+and square roots is exact.  The correctness of the computed parameter
+can be ensured by increasing the precision of the intermediate
+computations.  Because all inputs are integers, additions can usually
+be computed exactly without any increase in precision.
+Multiplications, divisions, and square roots, however, will require
+the precision to be doubled to maintain correctness.  \\\#PROOF NEEDED
+(or citation) for divisions and square roots! It seems like divisions
+wouldn't need an increase in precision, and that square roots can
+halve the precision for correct integers.
 
 \section{Method}
 \subsection{Parameter Comparison Method}
+
+
 \subsection{Resultant Method}
 Another method for computing the order of two intersections involves
 computing the resultant for their respective polynomials.  The
@@ -94,12 +107,12 @@ respectively, the resultant can also be computed as shown in Equation
 
 The two methods of computing the resultant provides us with an extra
 method of computing the sign of one of the differences of the two
-roots.  Since I are concerned only with the signs of the differences,
+roots.  Since we are concerned only with the signs of the differences,
 the actual value doesn't matter.  Thus, if one of the differences is
-too close to zero for comfort, I can compute the correct sign for it
+too close to zero for comfort, we can compute the correct sign for it
 from the signs of the other differences and the sign of the
-determinant.  I can then use Equation \ref{eq:resultant} to write
-Equation \ref{eq:signresult}.
+determinant.  Equation \ref{eq:resultant} lets us write Equation
+\ref{eq:signresult}.
 
 \begin{equation}
   \sign(res(P, Q)) =
@@ -108,21 +121,23 @@ Equation \ref{eq:signresult}.
 \end{equation}
 
 Without loss of generality, let us be concerned with the sign of
-$a_1-b_1$.  I can then solve for the sign of $a_1-b_1$ to be
+$a_1-b_1$.  The sign of $a_1-b_1$ can then be computed as shown in Equation \ref{eq:signroot}
 
-\begin{equation*}
-  \sign(a_1-b_1)=\sign(res(P, Q))\sign(p_m^n)\sign(q_n^m)
-  \prod_{i=2}^m\prod_{j=2}^n[\sign(a_i-b_j)\sign(a_1-b_j)\sign(a_i-b_1)]
-  \label{eq:signroot}
-\end{equation*}
+\begin{figure*}
+  \begin{align}
+    \sign(a_1-b_1)=\sign(res(P, Q))\sign(p_m^n)\sign(q_n^m)
+    \prod_{i=2}^m\prod_{j=2}^n[\sign(a_i-b_j)\sign(a_1-b_j)\sign(a_i-b_1)]
+    \label{eq:signroot}
+  \end{align}
+\end{figure*}
 
 For simplicity of computation, instead of performing many
-multiplications, I need to count only the number of negatives on the
+multiplications, we need to count only the number of negatives on the
 right hand side of this equation.  If there are an even number of
 negatives, then the undetermined sign will be positive.  If there are
 an odd number of negatives, the undetermined sign will be negative.
-Since I are concerned with the intersections of lines with quadric
-surfaces, I know our polynomials will be of order $2$, and thus that
+Since we are concerned with the intersections of lines with quadric
+surfaces, we know our polynomials will be of order $2$, and thus that
 the signs of $p_2^2$ and $q_2^2$ will be positive and can be ignored.
 
 A notable limitation of this method is that it assumes that all the
@@ -149,13 +164,13 @@ means each comparison requires only 1 FLOP, with an initialization
 cost of 10 FLOPs per intersection.
 
 On the other hand, computing a determinant of a 4x4 matrix costs about
-120 multiplications.  This is clearly too expensive, so I specialize
+120 multiplications.  This is clearly too expensive, so we specialize
 for the Sylvester matrix.  Computing the determinant of the Sylvester
-matrix itself would naively take $35$ FLOPs for each comparison.  I
+matrix itself would naively take $35$ FLOPs for each comparison.  We
 can do better by computing the per-polynomial values shown in Equation
 \ref{eq:sylvpoly}.  Since these values are solely determined by one of
-the polynomial's coefficients, I compute these once at first use, and
-store them for whenever I need to make future comparisons.  This
+the polynomial's coefficients, we compute these once at first use, and
+store them for whenever we need to make future comparisons.  This
 brings us to 11 FLOPs per comparison, with an initialization cost of 7
 FLOPs per intersection.  This appears more expensive, but the
 reduction in precision requirements and the lack of expensive square
@@ -190,7 +205,7 @@ additions at 12 times the precision of the input.  Computing the
 per-polynomial values requires six multiplications and one subtraction
 at 6 times the precision of the input.
 
-Since I are concerned only with the signs of the differences of
+Since we are concerned only with the signs of the differences of
 roots, no evaluation of the product of the known differences of the
 roots is needed.  Thus, no other increase of precision is required for
 the computation of the sign of the difference of the final pair of
@@ -249,7 +264,7 @@ cannot always be used.  The resultant method can be used only when two
 polynomials do not share roots.  It also requires that only one sign
 be ambiguous.  Furthermore, though the resultant can be used to
 compute the order of intersections for an arbitrary number of roots,
-I have only implemented it for the case of $2$ (possibly repeated)
+we have only implemented it for the case of $2$ (possibly repeated)
 roots for both polynomials.  This means that the line must intersect
 the surface twice for this method to be usable.
 
@@ -262,15 +277,15 @@ test must ensure a line will either intersect a surface twice, or
 intersect it once with a multiplicity of two.  This is guaranteed for
 most surfaces, but can occur on rare occasion with parabolic
 cylinders, hyperbolic paraboloids, and elliptic paraboloids.  To
-prevent this issue from occurring, I do not include these types of
-quadric surfaces in our test scenes.  I also do not include any
+prevent this issue from occurring, we do not include these types of
+quadric surfaces in our test scenes.  We also do not include any
 linear planes in our scenes.
 
-To analyze the results, I computed the least squares linear fit of
-the timing data.  For the Test Cylinders and Packed Ellipsoids, I
+To analyze the results, we computed the least squares linear fit of
+the timing data.  For the Test Cylinders and Packed Ellipsoids, we
 used the number of comparisons made as our independent variable, and
 computed a linear coefficient for it along with a constant term.  For
-the sets of Centered Ellipsoids and Aligned Cylinders, I was able to
+the sets of Centered Ellipsoids and Aligned Cylinders, we was able to
 aggregate the test results for each type of scene.  This allowed us to
 fit the line to two independent variables; the number of comparisons
 made, and the number of quadric surfaces in the scene.  Fitting the
