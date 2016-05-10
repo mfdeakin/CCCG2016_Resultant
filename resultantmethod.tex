@@ -117,10 +117,11 @@ property:~$\sign(y)=\sign(x)\sign(x\cdot y)$.  Divisions can be
 removed by applying this directly, in this case bringing us
 to~$\sign(a_1 a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\pm))$.  One of the
 square roots can be replaced by multiplying by $r_1^\pm-r_2^\mp$,
-bringing us to~$\sign(r_1^\pm-r_2^\mp)\sign(a_1 a_2 (r_1^\pm -
-r_2^\pm) (r_1^\pm - r_2^\mp))$.  When simplified, the final sign is
-computed from~$2a_2^2b_1^2-4a_1a_2^2c_1+4a_1^2a_2c_2-2a_1a_2b_1b_2\pm
-2 \sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$. This is sufficient to
+bringing us to~$\sign(a_1 a_2)\sign(a_1 a_2
+(r_1^\pm-r_2^\mp))\sign(a_1^2 a_2^2 (r_1^\pm - r_2^\pm) (r_1^\pm -
+r_2^\mp))$.  When simplified, the final sign is computed
+from~$a_2^2b_1^2-2a_1a_2^2c_1+2a_1^2a_2c_2-a_1a_2b_1b_2\pm
+\sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$. This is sufficient to
 compute the correct result, as the simplified equation contains only
 one square root, multiplications, and additions.
 
@@ -140,6 +141,16 @@ to~$4\times$ the coefficients precision.  The precision increases
 to~$8\times$ after squaring for comparison to the radicand.  The terms
 inside the radicand also require~$8\times$ the coefficients precision
 to be computed correctly.
+
+This method also requires a large number of FLOPs.  Computing the
+unambiguous sign of the difference of the roots requires 15 FLOPs
+total.  Correctly computing the final sign requires another 24 FLOPs.
+Unfortunately, because many of the computed terms require coefficients
+from both polynomials, they cannot be reused if a quadric needs to be
+compared multiple times.  The main thing that can be reused is the
+discriminant, which only reduces the number of FLOPs by 8.
+Fortunately, cases where a quadric is close enough to multiple
+quadrics for this to become a significant issue are rare.
 
 \subsection{Resultant Method}
 Another method for computing the order of two intersections involves
@@ -263,7 +274,7 @@ roots and divisions results in significant savings.
 This reduction theoretically makes this method slightly cheaper than
 computing the roots of the polynomial at higher precision.  Computing
 the determinant this way always requires six multiplications and five
-additions at 12 times the precision of the input.  Computing the
+additions at 4 times the precision of the coefficients.  Computing the
 per-polynomial values requires six multiplications and one subtraction
 at 6 times the precision of the input.
 
@@ -273,8 +284,8 @@ roots is needed.  Thus, no other increase of precision is required for
 the computation of the sign of the difference of the final pair of
 roots.
 
-\subsection{Evaluation of the Resultant Method}
-The increased precision and resultant methods were implemented in a
+\section{Evaluation}
+The approximate comparison and resultant methods were implemented in a
 C++ program for evaluation.  MPFR was used to implement the increased
 precision in both cases.
 
@@ -302,6 +313,15 @@ curve.  In specific scenes like this, the direction of the line was
 also constrained to further increase the probability of two
 intersections being computed in the wrong order.
 
+\begin{figure}
+  \includegraphics[width=0.4\textwidth]{imgs/cylinder_model_planeless.png}
+  \includegraphics[width=0.4\textwidth]{imgs/packedSpheres.png}
+  \includegraphics[width=0.4\textwidth]{imgs/hardEllipsoidsSingle.png}
+  \caption{Test Scenes: From Top to Bottom, Test Cylinders, Packed
+    Spheres, Shifted Ellipsoids}
+  \label{fig:testScenes}
+\end{figure}
+
 Once the line was generated, the intersections and their order were
 computed along with some statistics.  These statistics were the amount
 of time the sorting process took, the number of comparisons made at
@@ -311,14 +331,11 @@ computed list of intersections, and the POSIX clock\_gettime function
 was used for timing.  This is not an entirely fair comparison, for
 several reasons.
 
-The first is that the naive parameter comparison method would always
+The first is that the approximate comparison method would always
 compute the increased precision result, regardless of whether it was
 necessary.  This is unfair because it avoids the step of determining
 whether the increase was actually necessary, which would be performed
-in a real system.  In our testing setup, the threshold used to decide
-whether the increased precision is necessary was set to infinity,
-meaning the precision will always be increased in the resultant method
-as well.  This skews the results slightly in favor of the naive
+in a sane system.  This skews the results slightly in favor of the naive
 method.
 
 The second issue with the comparison is that the resultant method
@@ -347,12 +364,12 @@ To analyze the results, we computed the least squares linear fit of
 the timing data.  For the Test Cylinders and Packed Ellipsoids, we
 used the number of comparisons made as our independent variable, and
 computed a linear coefficient for it along with a constant term.  For
-the sets of Centered Ellipsoids and Aligned Cylinders, we was able to
-aggregate the test results for each type of scene.  This allowed us to
-fit the line to two independent variables; the number of comparisons
-made, and the number of quadric surfaces in the scene.  Fitting the
-time it takes to make a comparison to a linear relationship makes
-sense, as the bulk of the sorting time is taken up by performing these
+the set of Shifted Ellipsoids, we were able to aggregate
+the test results for each type of scene.  This allowed us to fit the
+line to two independent variables; the number of comparisons made, and
+the number of quadric surfaces in the scene.  Fitting the time it
+takes to make a comparison to a linear relationship makes sense, as
+the bulk of the sorting time is taken up by performing these
 comparisons.  It also makes sense for the time to be linearly related
 to the number of quadrics in the scene, as the cached values are only
 computed once for each quadric, and are likely to significantly affect
@@ -394,6 +411,11 @@ about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
 FLOPS than the Gentoo computer.
 
 \section{Results}
+
+\begin{figure}
+  \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
+\end{figure}
+
 \section{Conclusion}
 
 \bibliographystyle{plain}
