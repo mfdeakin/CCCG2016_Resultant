@@ -38,10 +38,11 @@ intercepts of the line can result in significant error.  Increasing
 the precision the computations reduces this error, but significantly
 increases the computational work required.
 
-Given a line and a set of quadric surfaces, we develop an algorithm
+Given a line and a pair of quadric surfaces, we develop an algorithm
 that correctly computes the order in which the line intersects the
-quadric surfaces at half the precision required by the parameter
-comparison algorithm.
+quadric surfaces when there is one ambiguous difference in roots.
+This method requires only half the precision required by the parameter
+comparison method.
 \end{abstract}
 
 \section{Introduction}
@@ -69,11 +70,26 @@ the input values.
 Correctness requires the results of expressions to be exactly
 representable in the final format, so in general the use of divisions
 or square roots disqualifies a method from being correct.
+
 % Not as terrible
 When the sign of a computation is all that's required, a single square
 root is permissible, as comparing the radicand and the square of the
 other term will determine the sign of the result.
+% Need a more precise way of saying this...
+When multiple square roots are present, determining the sign is made
+harder because the minimum number of bits required to reasonably
+approximate the difference is unknown \cite{demaine33open}.  Luckily,
+correctness of the sign computation can still be guaranteed if the
+maximum possible rounding error is less than the magnitude of the
+result.
 
+In this work, we compare three different methods for computing the
+order of line-quadric intersections.  These methods are specifically
+developed for the case where only one pair of roots has a difference
+which is potentially overwhelmed by the rounding errors in the
+computation.  This is a notable limitation, but scenes of quadric
+surfaces which can have more than one pair of ambiguous roots are rare
+and should be dealt with specifically.
 
 \section{Methods}
 Three line-quadric intersection comparsion methods are evaluated in
@@ -82,34 +98,40 @@ These methods include the ``Approximate Comparison Method'', the
 ``Parameter Comparison Method'', and the ``Resultant Method''.
 
 \subsection{Approximate Comparison Method}
-This method computes the roots
-$r_i^\pm=\frac{b_i\pm\sqrt{b_i^2-a_ic_i}}{a_i}, i\in\{1, 2\}$
+The approximate comparison method computes the
+roots~$r_i^\pm=\frac{b_i\pm\sqrt{b_i^2-a_ic_i}}{a_i}, i\in\{1, 2\}$
 approximately by computing each operation.  From there the order of
-the roots can be approximated from $\sign(r_1^\pm-r_2^\pm)$.
+the roots can be approximated from~$\sign(r_1^\pm-r_2^\pm)$.
 
 This method clearly does not guarantee a correct result.  Some of the
 intermediate computations such as the square roots cannot be computed
 exactly in general, meaning that though the result will be correct in
-most cases, it is not guaranteed to be correct.  In cases where the
-square roots are of opposite signs, the problem is made harder because
-the minimum number of bits required to reasonably approximate the
-difference is unknown \cite{demaine33open}.
+most cases, it is not guaranteed to be correct.  This is especially
+true for
 
 \subsection{Parameter Comparison Method}
 This method computes~$\sign(r_1^\pm-r_2^\pm)$ with some algebraic
-manipulations to eliminate division and square root operations.  We
-eliminate these operations by using the following
+manipulations to eliminate division and potentially bad square root
+operations.  We eliminate these operations by using the following
 property:~$\sign(y)=\sign(x)\sign(x\cdot y)$.  Divisions can be
 removed by applying this directly, in this case bringing us
 to~$\sign(a_1 a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\pm))$.  One of the
-square roots can be eliminated by multiplying by $r_1^\pm-r_2^\mp$,
-bringing us to~$\sign(a_1 a_2)\sign(a_1 a_2
-(r_1^\pm-r_2^\mp))\sign(a_1 a_2 (r_1^\pm - r_2^\pm) (r_1^\pm -
-r_2^\mp))$.  This is sufficient to compute the correct result, as the
-simplified equation contains only one square root, multiplications,
-and additions.  When simplified, the final sign is computed from
-$2a_2^2b_1^2-4a_1a_2^2c_1+4a_1^2a_2c_2-2a_1a_2b_1b_2\pm 2
-\sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$
+square roots can be replaced by multiplying by $r_1^\pm-r_2^\mp$,
+bringing us to~$\sign(r_1^\pm-r_2^\mp)\sign(a_1 a_2 (r_1^\pm -
+r_2^\pm) (r_1^\pm - r_2^\mp))$.  When simplified, the final sign is
+computed from~$2a_2^2b_1^2-4a_1a_2^2c_1+4a_1^2a_2c_2-2a_1a_2b_1b_2\pm
+2 \sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$. This is sufficient to
+compute the correct result, as the simplified equation contains only
+one square root, multiplications, and additions.
+
+Despite the work done, it's not immediately clear that this leads to a
+correctly computable method.  The remaining issues are present in the
+other sign computation with square roots. $\sign(r_1^\pm-r_2^\mp)$ is
+not correctly computable in general.  However, because we are
+computing $\sign(r_1^\pm-r_2^\pm)$, we know that $r_1^\pm, r_2^\pm$
+are the only pair roots for which the sign of the difference cannot be
+computed exactly.  This resolves all issues with guaranteeing
+correctness for this computation.
 
 Though this method is correct, it requires a large increase in
 precision to correctly compute the sign. The terms outside of the
@@ -123,9 +145,9 @@ to be computed correctly.
 Another method for computing the order of two intersections involves
 computing the resultant for their respective polynomials.  The
 resultant of two polynomials can be computed by taking the determinant
-of the Sylvester Matrix.  The Sylvester Matrix for polynomials
-$P(t)=p_m t^m + \dots + p_0$ and $Q(t)=q_n t^n + \dots + q_0$ is
-defined in Equation \ref{eq:sylv}.
+of the Sylvester Matrix.  The Sylvester Matrix for
+polynomials~$P(t)=p_m t^m + \dots + p_0$ and~$Q(t)=q_n t^n + \dots +
+q_0$ is defined in Equation \ref{eq:sylv}.
 \begin{equation}
   S_{PQ}=\begin{pmatrix}
     p_m & \dots & & p_0 & 0 & & 0\\
@@ -139,11 +161,11 @@ defined in Equation \ref{eq:sylv}.
   \end{pmatrix}
   \label{eq:sylv}
 \end{equation}
-where $P$ and $Q$ are polynomials of one parameter and with orders $m$
-and $n$, respectively \cite[Section~3.5]{cheeyap}.
+where~$P$ and~$Q$ are polynomials of one parameter and with orders~$m$
+and~$n$, respectively \cite[Section~3.5]{cheeyap}.
 
 The determinant of the Sylvester matrix is defined to be the resultant
-of the two polynomials.  Given the roots $a_i$, $b_i$ of $P$ and $Q$,
+of the two polynomials.  Given the roots~$a_i, b_i$ of~$P$ and~$Q$,
 respectively, the resultant can also be computed as shown in Equation
 \ref{eq:resultant}. \cite[Section~6.4]{cheeyap}.
 \begin{equation}
@@ -166,8 +188,8 @@ determinant.  Equation \ref{eq:resultant} lets us write Equation
   \label{eq:signresult}
 \end{equation}
 
-Without loss of generality, let us be concerned with the sign of
-$a_1-b_1$.  The sign of $a_1-b_1$ can then be computed as shown in
+Without loss of generality, let us be concerned with the sign
+of~$a_1-b_1$.  The sign of~$a_1-b_1$ can then be computed as shown in
 Equation \ref{eq:signroot}
 
 \begin{figure*}
@@ -184,36 +206,29 @@ right hand side of this equation.  If there are an even number of
 negatives, then the undetermined sign will be positive.  If there are
 an odd number of negatives, the undetermined sign will be negative.
 Since we are concerned with the intersections of lines with quadric
-surfaces, we know our polynomials will be of order $2$, and thus that
-the signs of $p_2^2$ and $q_2^2$ will be positive and can be ignored.
-
-A notable limitation of this method is that it assumes that all the
-signs on the right are known and trusted.  Furthermore, if any of the
-known differences are zero, this method will not work.  Though there
-are methods which can be used in these instances, they are not related
-to the resultant method.  Despite its limitations, the resultant
-method as described does have benefits over the traditional method of
-simply increasing precision.
+surfaces, we know our polynomials will be of order~$2$, and thus that
+the signs of~$p_2^2$ and~$q_2^2$ will be positive and can be ignored.
 
 It should be immediately apparent that computing the determinant can
-be done more cheaply than computing the differences of roots of the
-polynomials.  Computing the roots of the polynomials requires seven
-additions and multiplications, plus the expensive square root and two
-divisions.  For reference, it has been shown that a square root costs
-approximately the same number of operations as $\frac{3}{2}$ additions
-at the same precision \cite{karatsuba}.  To compute the roots, two
-multiplications and an addition are computed at 6 times the precision
-of the input.  The square root and two additions are computed at 12
-times the initial precision.  The two divisions are computed at 24
-times the initial precision.  To actually perform the comparison, one
-final subtraction is required at 24 times the initial precision. This
-means each comparison requires only 1 FLOP, with an initialization
-cost of 10 FLOPs per intersection.
+be done more cheaply than correctly computing the sign of the
+differences of roots of the polynomials.  Computing the roots of the
+polynomials requires seven additions and multiplications, plus the
+expensive square root and two divisions.  For reference, it has been
+shown that a square root costs approximately the same number of
+operations as~$\frac{3}{2}$ additions at the same precision
+\cite{karatsuba}.  To compute the roots, two multiplications and an
+addition are computed at 6 times the precision of the input.  The
+square root and two additions are computed at 12 times the initial
+precision.  The two divisions are computed at 24 times the initial
+precision.  To actually perform the comparison, one final subtraction
+is required at 24 times the initial precision. This means each
+comparison requires only 1 FLOP, with an initialization cost of 10
+FLOPs per intersection.
 
 On the other hand, computing a determinant of a 4x4 matrix costs about
 120 multiplications.  This is clearly too expensive, so we specialize
 for the Sylvester matrix.  Computing the determinant of the Sylvester
-matrix itself would naively take $35$ FLOPs for each comparison.  We
+matrix itself would naively take~$35$ FLOPs for each comparison.  We
 can do better by computing the per-polynomial values shown in Equation
 \ref{eq:sylvpoly}.  Since these values are solely determined by one of
 the polynomial's coefficients, we compute these once at first use, and
@@ -276,7 +291,7 @@ vary based on the order of previously seen quadrics.
 
 To compare the methods, several scenes of quadric surfaces were
 created.  These scenes were composed of surfaces which were mostly
-constrained within the unit cube centered at $(0.5, 0.5, 0.5)$.  To
+constrained within the unit cube centered at~$(0.5, 0.5, 0.5)$.  To
 actually perform the tests, 10000 random lines were generated.  These
 lines were generated with intercepts positioned to make close
 intersections more likely.  For most scenes, this was done by
@@ -311,7 +326,7 @@ cannot always be used.  The resultant method can be used only when two
 polynomials do not share roots.  It also requires that only one sign
 be ambiguous.  Furthermore, though the resultant can be used to
 compute the order of intersections for an arbitrary number of roots,
-we have only implemented it for the case of $2$ (possibly repeated)
+we have only implemented it for the case of~$2$ (possibly repeated)
 roots for both polynomials.  This means that the line must intersect
 the surface twice for this method to be usable.
 
