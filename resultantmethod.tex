@@ -96,20 +96,28 @@ the minimum number of bits required to reasonably approximate the
 difference is unknown \cite{demaine33open}.
 
 \subsection{Parameter Comparison Method}
-This method computes $\sign(r_1^\pm-r_2^\pm)$ with some algebraic
+This method computes~$\sign(r_1^\pm-r_2^\pm)$ with some algebraic
 manipulations to eliminate division and square root operations.  We
-eliminate these operations by using the following property:
-$\sign(y)=\sign(x)\sign(x\cdot y)$.  Divisions can be removed by
-applying this directly, in this case bringing us to $\sign(a_1
-a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\pm))$.  One of the square roots can be
-eliminated by multiplying by $r_1^\pm-r_2^\mp$, bringing us to
-$\sign(a_1 a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\mp))\sign(a_1 a_2 (r_1^\pm
-- r_2^\pm) (r_1^\pm - r_2^\mp))$.  This is sufficient to compute the
-correct result, as the simplified equation contains only one square
-root, multiplications, and additions.
+eliminate these operations by using the following
+property:~$\sign(y)=\sign(x)\sign(x\cdot y)$.  Divisions can be
+removed by applying this directly, in this case bringing us
+to~$\sign(a_1 a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\pm))$.  One of the
+square roots can be eliminated by multiplying by $r_1^\pm-r_2^\mp$,
+bringing us to~$\sign(a_1 a_2)\sign(a_1 a_2
+(r_1^\pm-r_2^\mp))\sign(a_1 a_2 (r_1^\pm - r_2^\pm) (r_1^\pm -
+r_2^\mp))$.  This is sufficient to compute the correct result, as the
+simplified equation contains only one square root, multiplications,
+and additions.  When simplified, the final sign is computed from
+$2a_2^2b_1^2-4a_1a_2^2c_1+4a_1^2a_2c_2-2a_1a_2b_1b_2\pm 2
+\sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$
 
 Though this method is correct, it requires a large increase in
-precision to correctly compute the sign.
+precision to correctly compute the sign. The terms outside of the
+square root can be computed correctly by increasing the precision
+to~$4\times$ the coefficients precision.  The precision increases
+to~$8\times$ after squaring for comparison to the radicand.  The terms
+inside the radicand also require~$8\times$ the coefficients precision
+to be computed correctly.
 
 \subsection{Resultant Method}
 Another method for computing the order of two intersections involves
@@ -159,7 +167,8 @@ determinant.  Equation \ref{eq:resultant} lets us write Equation
 \end{equation}
 
 Without loss of generality, let us be concerned with the sign of
-$a_1-b_1$.  The sign of $a_1-b_1$ can then be computed as shown in Equation \ref{eq:signroot}
+$a_1-b_1$.  The sign of $a_1-b_1$ can then be computed as shown in
+Equation \ref{eq:signroot}
 
 \begin{figure*}
   \begin{align}
