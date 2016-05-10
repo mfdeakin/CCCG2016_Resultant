@@ -47,31 +47,69 @@ comparison algorithm.
 \section{Introduction}
 A line-quadric intersection is a point~$p=(x, y, z)$ computable from
 the parametric line equation $l(t)=(m_x t + c_x, m_y t + c_y, m_z t +
-c_z)$ that satisfies the quadric surface equation $Q(x, y, z)=q_{xx}
+c_z)$ that satisfies the quadric surface equation~$Q(x, y, z)=q_{xx}
 x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 + q_{z} z +
 q_c = 0$.  The parameter of the line specifying the point of
-intersection can be computed by finding the roots of $Q(l(t))=a t^2 -
+intersection can be computed by finding the roots of~$Q(l(t))=a t^2 -
 2 b t + c$.  This is easiest to do with the quadratic equation, but
 this method has issues with correctness when performed at the same
 precision as the coefficients of the input line and quadric surfaces.
 
 Correctness in this case is defined for a particular set of inputs.
 Specifically, a computation is said to be correct if for all inputs
-which are integers when multiplied by $2^e$ and are less $2^p$, the
+which are integers when multiplied by $2^{-e}$ and are less $2^p$, the
 rounded result of a series of additions, multiplications, divisions,
 and square roots is exact.  The correctness of the computed parameter
 can be ensured by increasing the precision of the intermediate
 computations.  Because all inputs are integers, additions can usually
-be computed exactly without any increase in precision.
-Multiplications, divisions, and square roots, however, will require
-the precision to be doubled to maintain correctness.  \\\#PROOF NEEDED
-(or citation) for divisions and square roots! It seems like divisions
-wouldn't need an increase in precision, and that square roots can
-halve the precision for correct integers.
+be computed exactly without any increase in precision.  Multiplication
+requires the precision to be increased to the sum of the precisions of
+the input values.
+% This is terrible!! Fix it!!!
+Correctness requires the results of expressions to be exactly
+representable in the final format, so in general the use of divisions
+or square roots disqualifies a method from being correct.
+% Not as terrible
+When the sign of a computation is all that's required, a single square
+root is permissible, as comparing the radicand and the square of the
+other term will determine the sign of the result.
 
-\section{Method}
+
+\section{Methods}
+Three line-quadric intersection comparsion methods are evaluated in
+terms of correctness, precision requirements, and FLOPs required.
+These methods include the ``Approximate Comparison Method'', the
+``Parameter Comparison Method'', and the ``Resultant Method''.
+
+\subsection{Approximate Comparison Method}
+This method computes the roots
+$r_i^\pm=\frac{b_i\pm\sqrt{b_i^2-a_ic_i}}{a_i}, i\in\{1, 2\}$
+approximately by computing each operation.  From there the order of
+the roots can be approximated from $\sign(r_1^\pm-r_2^\pm)$.
+
+This method clearly does not guarantee a correct result.  Some of the
+intermediate computations such as the square roots cannot be computed
+exactly in general, meaning that though the result will be correct in
+most cases, it is not guaranteed to be correct.  In cases where the
+square roots are of opposite signs, the problem is made harder because
+the minimum number of bits required to reasonably approximate the
+difference is unknown \cite{demaine33open}.
+
 \subsection{Parameter Comparison Method}
+This method computes $\sign(r_1^\pm-r_2^\pm)$ with some algebraic
+manipulations to eliminate division and square root operations.  We
+eliminate these operations by using the following property:
+$\sign(y)=\sign(x)\sign(x\cdot y)$.  Divisions can be removed by
+applying this directly, in this case bringing us to $\sign(a_1
+a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\pm))$.  One of the square roots can be
+eliminated by multiplying by $r_1^\pm-r_2^\mp$, bringing us to
+$\sign(a_1 a_2)\sign(a_1 a_2 (r_1^\pm-r_2^\mp))\sign(a_1 a_2 (r_1^\pm
+- r_2^\pm) (r_1^\pm - r_2^\mp))$.  This is sufficient to compute the
+correct result, as the simplified equation contains only one square
+root, multiplications, and additions.
 
+Though this method is correct, it requires a large increase in
+precision to correctly compute the sign.
 
 \subsection{Resultant Method}
 Another method for computing the order of two intersections involves
