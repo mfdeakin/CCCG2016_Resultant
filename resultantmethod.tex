@@ -16,13 +16,16 @@
 \DeclareMathOperator{\sign}{sign}
 \DeclareMathOperator{\fma}{fma}
 \DeclareMathOperator{\round}{round}
+\def\Jack#1{{\bf [[#1]]}\ignorespaces}
+%\def\Jack#1{\ignorespaces}%% uncomment to hide remarks
 
 \lstset{basicstyle=\ttfamily}
 
-\title{Low Order Comparison of Line-Quadric Intercepts}
+%\title{Low Order Comparison of Line-Quadric Intercepts}
+\title{On the Precision to Sort Line-Quadric Intersections}
 \author{Michael Deakin \and Jack Snoeyink\thanks{School of Computer
     Science, University of North Carolina at Chapel Hill, {\tt
-      mfdeakin@cs.unc.edu}, {\tt jsnoeyink@cs.unc.edu}}}
+      mfdeakin@cs.unc.edu}, {\tt snoeyink@cs.unc.edu}}}
 
 \index{Deakin, Michael}
 \index{Snoeyink, Jack}
@@ -32,31 +35,44 @@
 \maketitle
 
 \begin{abstract}
-Ordering line-quadric intercepts at precisions greater than the input
-precision by comparing the parameters $t_i$ corresponding to the
-intercepts of the line can result in significant error.  Increasing
-the precision the computations reduces this error, but significantly
-increases the computational work required.
+  We consider a subproblem of the task of exactly tracking a neutron
+  moving along a given line segment through a CAD model with quadric
+  surfaces, namely, how much more than the input precision is required
+  to guarantee the correct ordering along the line segment of the
+  intersections from a pair quadrics.  When the order of all but one
+  pair of intersections is known, known se show that a resultant can
+  resolve the comparison using only half the precision that may be
+  required to eliminate radicals by repeated squaring, and we compare
+  the time and accuracy of our technique with converting to extended
+  precision to calculate roots.
+  
+%%% JSS: ordering and increasing are talking about procedures before their inputs and outputs are made clear
+%% Ordering line-quadric intercepts at precisions greater than the input
+%% precision by comparing the parameters $t_i$ corresponding to the
+%% intercepts of the line can result in significant error.  Increasing
+%% the precision the computations reduces this error, but significantly
+%% increases the computational work required.
 
-Given a line and a pair of quadric surfaces, we develop an algorithm
-that correctly computes the order in which the line intersects the
-quadric surfaces when there is one ambiguous difference in roots.
-This method requires only half the precision required by the parameter
-comparison method.
+%% Given a line and a pair of quadric surfaces, we develop an algorithm
+%% that correctly computes the order in which the line intersects the
+%% quadric surfaces when there is one ambiguous difference in roots.
+%% This method requires only half the precision required by the parameter
+%% comparison method.
 \end{abstract}
 
 \section{Introduction}
+\Jack{representations are important, so define your representations for lines and quadrics before using them in a formula.} 
 A line-quadric intersection is a point~$p=(x, y, z)$ computable from
 the parametric line equation $l(t)=(m_x t + c_x, m_y t + c_y, m_z t +
 c_z)$ that satisfies the quadric surface equation~$Q(x, y, z)=q_{xx}
 x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 + q_{z} z +
 q_c = 0$.  The parameter of the line specifying the point of
 intersection can be computed by finding the roots of~$Q(l(t))=a t^2 -
-2 b t + c$.  This is easiest to do with the quadratic equation, but
+2 b t + c$.  This is easiest to do with the quadratic equation, but\Jack{remember: distinguish between math and computation for any procedure. I thought you were talking math, but you just switched to computation with limited precision.}
 this method has issues with correctness when performed at the same
 precision as the coefficients of the input line and quadric surfaces.
 
-Correctness in this case is defined for a particular set of inputs.
+Correctness in this case is defined for a particular set of inputs. \Jack{This first sentence adds nothing but the mistaken impression that Correctness has already been defined.  The next is easier if you've already mentioned representations above.  And we don't really want all things to be integers -- well scaled floating point is fine.  For now we can just say single, and assume that the exponents are close enough that making them equal does not lose bits.}
 Specifically, a computation is said to be correct if for all inputs
 which are integers when multiplied by $2^{-e}$ and are less $2^p$, the
 rounded result of a series of additions, multiplications, divisions,
@@ -98,18 +114,16 @@ These methods include the ``Approximate Comparison Method'', the
 ``Parameter Comparison Method'', and the ``Resultant Method''.
 
 \subsection{Approximate Comparison Method}
-The approximate comparison method computes the
-roots~$r_i^\pm=\frac{b_i\pm\sqrt{b_i^2-a_ic_i}}{a_i}, i\in\{1, 2\}$
-approximately by computing each operation.  From there the order of
-the roots can be approximated from~$\sign(r_1^\pm-r_2^\pm)$.
+The approximate comparison method computes, for $i\in\{1, 2\}$,\Jack{Never separate math by commas only; always use words.  Doing so here let me define $i$ before using it, instead of after. Avoid frac inline.} the
+roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$
+approximately by computing each operation.  The order of
+the approximate roots can be calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
 
-This method clearly does not guarantee a correct result.  Some of the
-intermediate computations such as the square roots cannot be computed
-exactly in general, meaning that though the result will be correct in
-most cases, it is not guaranteed to be correct.  This is especially
-true for
+Though this method will usually give correct orders, it clearly does not guarantee them, since intermediate computations, such as the square roots,  cannot be computed
+exactly for all inputs.\Jack{Shortened what you had.}
 
-\subsection{Parameter Comparison Method}
+
+\subsection{Parameter Comparison Method}\Jack{The roots are parameters, so it is better to call this Repeated Squaring Method -- more parallel with Resultant Method.}
 This method computes~$\sign(r_1^\pm-r_2^\pm)$ with some algebraic
 manipulations to eliminate division and potentially bad square root
 operations.  We eliminate these operations by using the following
