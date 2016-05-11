@@ -12,6 +12,7 @@
 \usepackage{subfig}
 \usepackage{listings}
 \usepackage{courier}
+\usepackage{float}
 
 \DeclareMathOperator{\sign}{sign}
 \DeclareMathOperator{\fma}{fma}
@@ -21,7 +22,6 @@
 
 \lstset{basicstyle=\ttfamily}
 
-%\title{Low Order Comparison of Line-Quadric Intercepts}
 \title{On the Precision to Sort Line-Quadric Intersections}
 \author{Michael Deakin \and Jack Snoeyink\thanks{School of Computer
     Science, University of North Carolina at Chapel Hill, {\tt
@@ -40,48 +40,55 @@
   surfaces, namely, how much more than the input precision is required
   to guarantee the correct ordering along the line segment of the
   intersections from a pair quadrics.  When the order of all but one
-  pair of intersections is known, known se show that a resultant can
+  pair of intersections is known, we show that a resultant can
   resolve the comparison using only half the precision that may be
   required to eliminate radicals by repeated squaring, and we compare
   the time and accuracy of our technique with converting to extended
   precision to calculate roots.
-  
-%%% JSS: ordering and increasing are talking about procedures before their inputs and outputs are made clear
-%% Ordering line-quadric intercepts at precisions greater than the input
-%% precision by comparing the parameters $t_i$ corresponding to the
-%% intercepts of the line can result in significant error.  Increasing
-%% the precision the computations reduces this error, but significantly
-%% increases the computational work required.
-
-%% Given a line and a pair of quadric surfaces, we develop an algorithm
-%% that correctly computes the order in which the line intersects the
-%% quadric surfaces when there is one ambiguous difference in roots.
-%% This method requires only half the precision required by the parameter
-%% comparison method.
 \end{abstract}
 
 \section{Introduction}
-\Jack{representations are important, so define your representations for lines and quadrics before using them in a formula.} 
-A line-quadric intersection is a point~$p=(x, y, z)$ computable from
-the parametric line equation $l(t)=(m_x t + c_x, m_y t + c_y, m_z t +
-c_z)$ that satisfies the quadric surface equation~$Q(x, y, z)=q_{xx}
-x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 + q_{z} z +
-q_c = 0$.  The parameter of the line specifying the point of
-intersection can be computed by finding the roots of~$Q(l(t))=a t^2 -
-2 b t + c$.  This is easiest to do with the quadratic equation, but\Jack{remember: distinguish between math and computation for any procedure. I thought you were talking math, but you just switched to computation with limited precision.}
-this method has issues with correctness when performed at the same
-precision as the coefficients of the input line and quadric surfaces.
+In this paper, we are concerned with the points of line-quadric
+intersections.  As a result, we need complimentary representations for
+these objects.  Points are easiest to represent as a tuple~$(x, y,
+z)$.  Lines are most easily representable with parametric equations of
+the form~$l(t)=(m_x t + c_x, m_y t + c_y, m_z t + c_z)$.  This works
+well with our representation of a point, because the result of this
+equation is a point.  Quadric surfaces are not so easy to represent as
+parametric equations, due to their non-linear nature.  Instead, it is
+easier to represent them as an isosurface of the form~$Q(x, y,
+z)=q_{xx} x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 +
+q_{z} z + q_c = 0$.  This fits well with our previous definitions, as
+this equation takes points as inputs.  As a result, it is easy to
+determine whether a point is on the surface and the line-quadric
+intersection.
 
-Correctness in this case is defined for a particular set of inputs. \Jack{This first sentence adds nothing but the mistaken impression that Correctness has already been defined.  The next is easier if you've already mentioned representations above.  And we don't really want all things to be integers -- well scaled floating point is fine.  For now we can just say single, and assume that the exponents are close enough that making them equal does not lose bits.}
-Specifically, a computation is said to be correct if for all inputs
-which are integers when multiplied by $2^{-e}$ and are less $2^p$, the
-rounded result of a series of additions, multiplications, divisions,
-and square roots is exact.  The correctness of the computed parameter
-can be ensured by increasing the precision of the intermediate
-computations.  Because all inputs are integers, additions can usually
-be computed exactly without any increase in precision.  Multiplication
-requires the precision to be increased to the sum of the precisions of
-the input values.
+A line-quadric intersection is a point~$p=(x, y, z)$ computable from
+the parametric line equation that satisfies the quadric surface
+equation.  The parameter of the line specifying the point of
+intersection can be computed by finding the roots of~$Q(l(t))=a t^2 -
+2 b t + c$.  This is easiest to do with the quadratic equation, but
+the result is not so useful for comparisons.  Directly using the
+result of the quadratic equation for comparison has issues with
+correctness when performed at the same precision as the coefficients
+of the input line and quadric surfaces.
+
+Correctness in this case is defined for a particular set of
+inputs. \Jack{This first sentence adds nothing but the mistaken
+  impression that Correctness has already been defined.  The next is
+  easier if you've already mentioned representations above.  And we
+  don't really want all things to be integers -- well scaled floating
+  point is fine.  For now we can just say single, and assume that the
+  exponents are close enough that making them equal does not lose
+  bits.}  Specifically, a computation is said to be correct if for all
+inputs which are integers when multiplied by $2^{-e}$ and are less
+$2^p$, the rounded result of a series of additions, multiplications,
+divisions, and square roots is exact.  The correctness of the computed
+parameter can be ensured by increasing the precision of the
+intermediate computations.  Because all inputs are integers, additions
+can usually be computed exactly without any increase in precision.
+Multiplication requires the precision to be increased to the sum of
+the precisions of the input values.
 % This is terrible!! Fix it!!!
 Correctness requires the results of expressions to be exactly
 representable in the final format, so in general the use of divisions
@@ -111,19 +118,28 @@ and should be dealt with specifically.
 Three line-quadric intersection comparsion methods are evaluated in
 terms of correctness, precision requirements, and FLOPs required.
 These methods include the ``Approximate Comparison Method'', the
-``Parameter Comparison Method'', and the ``Resultant Method''.
+``Repeated Squaring Method'', and the ``Resultant Method''.
 
 \subsection{Approximate Comparison Method}
-The approximate comparison method computes, for $i\in\{1, 2\}$,\Jack{Never separate math by commas only; always use words.  Doing so here let me define $i$ before using it, instead of after. Avoid frac inline.} the
-roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$
-approximately by computing each operation.  The order of
-the approximate roots can be calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
+The approximate comparison method computes, for $i\in\{1, 2\}$, the
+roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$ approximately by
+computing each operation.  The order of the approximate roots can be
+calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
 
-Though this method will usually give correct orders, it clearly does not guarantee them, since intermediate computations, such as the square roots,  cannot be computed
-exactly for all inputs.\Jack{Shortened what you had.}
+Though this method will usually give correct orders, it clearly does
+not guarantee them, since intermediate computations, such as the
+square roots, cannot be computed exactly for all inputs.
 
+Because this method cannot guarantee correctness, any precision
+increases are optional and only serve to increase the likelihood of
+computing the correct order of intersections.
 
-\subsection{Parameter Comparison Method}\Jack{The roots are parameters, so it is better to call this Repeated Squaring Method -- more parallel with Resultant Method.}
+Because no effort was spent to guarantee correctness, this method
+requires very little computation.  Computing the both roots requires
+only $12$ FLOPs, and computing the sign of the difference requires
+only one more.  The roots can also be reused in cases where 
+
+\subsection{Repeated Squaring Method}
 This method computes~$\sign(r_1^\pm-r_2^\pm)$ with some algebraic
 manipulations to eliminate division and potentially bad square root
 operations.  We eliminate these operations by using the following
@@ -259,9 +275,8 @@ can do better by computing the per-polynomial values shown in Equation
 the polynomial's coefficients, we compute these once at first use, and
 store them for whenever we need to make future comparisons.  This
 brings us to 11 FLOPs per comparison, with an initialization cost of 7
-FLOPs per intersection.  This appears more expensive, but the
-reduction in precision requirements and the lack of expensive square
-roots and divisions results in significant savings.
+FLOPs per intersection.
+
 \begin{figure*}
   \begin{equation*}
     \Delta=\begin{vmatrix}
@@ -284,7 +299,7 @@ roots and divisions results in significant savings.
   \label{eq:sylvpoly}
   \end{align}
 \end{figure*}
-% CITE/Proof needed!!!
+
 This reduction theoretically makes this method slightly cheaper than
 computing the roots of the polynomial at higher precision.  Computing
 the determinant this way always requires six multiplications and five
@@ -299,6 +314,7 @@ the computation of the sign of the difference of the final pair of
 roots.
 
 \section{Evaluation}
+\subsection{Evaluation Methods}
 The approximate comparison and resultant methods were implemented in a
 C++ program for evaluation.  MPFR was used to implement the increased
 precision in both cases.
@@ -313,28 +329,6 @@ different for the two methods, the results are listed as possibly
 being erroneous.  Note that this method does not verify that the
 regions contain the same quadrics; as the quadrics in each region can
 vary based on the order of previously seen quadrics.
-
-To compare the methods, several scenes of quadric surfaces were
-created.  These scenes were composed of surfaces which were mostly
-constrained within the unit cube centered at~$(0.5, 0.5, 0.5)$.  To
-actually perform the tests, 10000 random lines were generated.  These
-lines were generated with intercepts positioned to make close
-intersections more likely.  For most scenes, this was done by
-constraining the intercept within the unit cube.  For the case of the
-intersection of two orthogonal cylinders, this was positioned inside
-of the two cylinders near the plane containing their intersection
-curve.  In specific scenes like this, the direction of the line was
-also constrained to further increase the probability of two
-intersections being computed in the wrong order.
-
-\begin{figure}
-  \includegraphics[width=0.4\textwidth]{imgs/cylinder_model_planeless.png}
-  \includegraphics[width=0.4\textwidth]{imgs/packedSpheres.png}
-  \includegraphics[width=0.4\textwidth]{imgs/hardEllipsoidsSingle.png}
-  \caption{Test Scenes: From Top to Bottom, Test Cylinders, Packed
-    Spheres, Shifted Ellipsoids}
-  \label{fig:testScenes}
-\end{figure}
 
 Once the line was generated, the intersections and their order were
 computed along with some statistics.  These statistics were the amount
@@ -374,22 +368,45 @@ prevent this issue from occurring, we do not include these types of
 quadric surfaces in our test scenes.  We also do not include any
 linear planes in our scenes.
 
-To analyze the results, we computed the least squares linear fit of
-the timing data.  For the Test Cylinders and Packed Ellipsoids, we
-used the number of comparisons made as our independent variable, and
-computed a linear coefficient for it along with a constant term.  For
-the set of Shifted Ellipsoids, we were able to aggregate
-the test results for each type of scene.  This allowed us to fit the
-line to two independent variables; the number of comparisons made, and
-the number of quadric surfaces in the scene.  Fitting the time it
-takes to make a comparison to a linear relationship makes sense, as
-the bulk of the sorting time is taken up by performing these
-comparisons.  It also makes sense for the time to be linearly related
-to the number of quadrics in the scene, as the cached values are only
-computed once for each quadric, and are likely to significantly affect
-the time a comparison takes.
+\subsection{Test Scenes}
+To compare the methods, several scenes of quadric surfaces were
+created.  These scenes, shown in figure \ref{fig:testScenes}, were
+composed of surfaces which were mostly constrained within the unit
+cube centered at~$(0.5, 0.5, 0.5)$.  To actually perform the tests,
+10000 random lines were generated.  These lines were generated with
+intercepts positioned within the unit cube to make close intersections
+more likely.
 
-\section{Test Hardware}
+\begin{figure}
+  %\includegraphics[width=0.5\textwidth]{imgs/cylinder_model_planeless.png}
+  %\vspace{1mm}
+  \includegraphics[width=0.5\textwidth]{imgs/packedSpheres.png}
+  
+  \vspace{5mm}
+  \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle.png}
+  \caption{Test Scenes, from Top to Bottom:
+    %{\bf Test Cylinders};
+    {\bf Packed Spheres};
+    {\bf Shifted Ellipsoids}}
+  \label{fig:testScenes}
+\end{figure}
+
+\subsection{Analysis}
+To analyze the results, we computed the least squares linear fit of
+the timing data.  For the Packed Ellipsoids, we used the number of
+comparisons made as our independent variable, and computed a linear
+coefficient for it along with a constant term.  For the set of Shifted
+Ellipsoids, we were able to aggregate the test results for each type
+of scene.  This allowed us to fit the line to two independent
+variables; the number of comparisons made, and the number of quadric
+surfaces in the scene.  Fitting the time it takes to make a comparison
+to a linear relationship makes sense, as the bulk of the sorting time
+is taken up by performing these comparisons.  It also makes sense for
+the time to be linearly related to the number of quadrics in the
+scene, as the cached values are only computed once for each quadric,
+and are likely to significantly affect the time a comparison takes.
+
+\subsection{Hardware}
 Three computers were used to test the implementations.  The first
 computer has a Core i3 M370 processor with 2 cores and a 3 MB cache.
 This processor does provide not a hardware implementation of FMA.
@@ -426,8 +443,19 @@ FLOPS than the Gentoo computer.
 
 \section{Results}
 
+\begin{table}[p]
+  \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
+  \label{tab:times}
+  \centering{
+    \input{comparison_table.tex}
+  }
+\end{table}
+
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
+  \caption{Number of Comparisons vs. the Evaluation Time (ms); {\bf Red:
+      Approximation Method at $12\times$ the Coefficient Precision};
+    {\bf Blue: Resultant Method}}
 \end{figure}
 
 \section{Conclusion}
