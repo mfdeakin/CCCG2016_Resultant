@@ -74,8 +74,8 @@ For each, we evaluate correctness, precision, and floating-point arithmetic oper
 \subsection{Approximate Comparison Method}
 The approximate comparison method computes, for $i\in\{1, 2\}$, the
 roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$ approximately by
-computing each operation in IEEE 754 double precision.  To avoid subtractive cancellation, calculate
-$r_i^{\sign b_i}=({b_i+(\sign{b_i})\sqrt{b_i^2-a_ic_i}})/{a_i}.$
+computing each operation in IEEE 754 double precision.  To avoid subtractive cancellation, we calculate
+$r_i^{-\sign b_i}=-c_i/({b_i+(\sign{b_i})\sqrt{b_i^2-a_ic_i}}).$
 The order of the approximate roots can be
 calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
 
