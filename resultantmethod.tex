@@ -40,96 +40,76 @@
 \maketitle
 
 \begin{abstract}
-  We consider a subproblem of the task of exactly tracking a neutron
+  To support exactly tracking a neutron
   moving along a given line segment through a CAD model with quadric
-  surfaces, namely, how much more than the input precision is required
-  to guarantee the correct ordering along the line segment of the
-  intersections from a pair quadrics.  When the order of all but one
-  pair of intersections is known, we show that a resultant can
-  resolve the comparison using only half the precision that may be
-  required to eliminate radicals by repeated squaring, and we compare
+  surfaces,  this paper considers the arithmetic precision required
+  to compute the order of intersection points of two quadrics along the line segment. When the orders of all but one pair of points are known, we show that a resultant can
+  resolve the order of the remaining paiir using only half the precision that may be
+  required to eliminate radicals by repeated squaring. We compare
   the time and accuracy of our technique with converting to extended
   precision to calculate roots.
 \end{abstract}
 
+
 \section{Introduction}
-In this paper, we are concerned with the points of line-quadric
-intersections.  As a result, we need complimentary representations for
-these objects.  Points are easiest to represent as a tuple~$(x, y,
-z)$.  Lines are most easily representable with parametric equations of
-the form~$l(t)=(m_x t + c_x, m_y t + c_y, m_z t + c_z)$.  This works
-well with our representation of a point, because the result of this
-equation is a point.  Quadric surfaces are not so easy to represent as
-parametric equations, due to their non-linear nature.  Instead, it is
-easier to represent them as an isosurface of the form~$Q(x, y,
-z)=q_{xx} x^2 + q_{xy} xy + q_{xz} xz + q_x x + \dots + q_{zz} z^2 +
-q_{z} z + q_c = 0$.  This fits well with our previous definitions, as
-this equation takes points as inputs.  As a result, it is easy to
-determine whether a point is on the surface and the line-quadric
-intersection.
+In this work, we are concerned with ordering the points of
+line-quadric intersections in 3 dimensions, where the inputs are
+representable exactly using $b$-bit fixed-point numbers.  We will
+actually use floating point in storage and computation, but our
+guarantees will be for well-scaled inputs, which are easiest described
+as fixed-point.  A {\it representable point}~$c$ or {\it representable
+  vector}~$v$ is $3$-tuples of representable numbers $(x, y, z)$. The
+line segment from point~$c$ to~$c+v$ is defined parametrically for
+$t\in [0,1]$ as $\ell(t)=c+tv$; note that there may be no
+representable points on line $\ell$ except its endpoints (and even
+$c+v$ may not be representable, if the addition carries to
+$b+1$~bits.)
 
-A line-quadric intersection is a point~$p=(x, y, z)$ computable from
-the parametric line equation that satisfies the quadric surface
-equation.  The parameter of the line specifying the point of
-intersection can be computed by finding the roots of~$Q(l(t))=a t^2 -
-2 b t + c$.  This is easiest to do with the quadratic equation, but
-the result is not so useful for comparisons.  Directly using the
-result of the quadratic equation for comparison has issues with
-correctness when performed at the same precision as the coefficients
-of the input line and quadric surfaces.
+A quadratic is an implicit surface defined by 10 representable coefficients
+\begin{align*}Q(x, y, z)=q_{xx} x^2 &+ q_{xy} xy + q_{xz} xz + q_x x + \dots \\
+&+ q_{zz} z^2 + q_{z} z + q_c = 0.
+\end{align*}
+For more accuracy, we can allow more precision for the linear and
+quadratic coefficients, since we will need $3b$~bits to exactly
+multiply out the quadratic terms, or we can use a representable
+symmetric $3\times 3$ matrix~$M$, a representable vector~$v$, and a
+$3b$-bit constant~$C$ to give a different set of quadrics $\tilde Q(p)
+= (p-v)^TM(p-v) = C$ that are closed under all representable
+translations of~$v$. Whichever representation is chosen, the parameter
+values for line-quadric intersections are the roots of $Q(\ell(t))=0$,
+which can be expressed as a quadratic $At^2+2Bt+C=0$ whose
+coefficients can have at most $3b+4$ bits.  (Four carry bits suffice
+to sum the $3b$-bit products; $b=16$ allows exact coefficient
+computation as IEEE 754 doubles; $b=33$ as pairs of doubles.)
 
-Correctness in this case is defined for a particular set of
-inputs. \Jack{This first sentence adds nothing but the mistaken
-  impression that Correctness has already been defined.  The next is
-  easier if you've already mentioned representations above.  And we
-  don't really want all things to be integers -- well scaled floating
-  point is fine.  For now we can just say single, and assume that the
-  exponents are close enough that making them equal does not lose
-  bits.}  Specifically, a computation is said to be correct if for all
-inputs which are integers when multiplied by $2^{-e}$ and are less
-$2^p$, the rounded result of a series of additions, multiplications,
-divisions, and square roots is exact.  The correctness of the computed
-parameter can be ensured by increasing the precision of the
-intermediate computations.  Because all inputs are integers, additions
-can usually be computed exactly without any increase in precision.
-Multiplication requires the precision to be increased to the sum of
-the precisions of the input values.
-% This is terrible!! Fix it!!!
-Correctness requires the results of expressions to be exactly
-representable in the final format, so in general the use of divisions
-or square roots disqualifies a method from being correct.
-
-% Not as terrible
-When the sign of a computation is all that's required, a single square
-root is permissible, as comparing the radicand and the square of the
-other term will determine the sign of the result.
-% Need a more precise way of saying this...
-When multiple square roots are present, determining the sign is made
-harder because the minimum number of bits required to reasonably
-approximate the difference is unknown \cite{demaine33open}.  Luckily,
-correctness of the sign computation can still be guaranteed if the
-maximum possible rounding error is less than the magnitude of the
-result.
-
-In this work, we compare three different methods for computing the
-order of line-quadric intersections.  These methods are specifically
-developed for the case where only one pair of roots has a difference
-which is potentially overwhelmed by the rounding errors in the
-computation.  This is a notable limitation, but scenes of quadric
-surfaces which can have more than one pair of ambiguous roots are rare
-and should be dealt with specifically.
+These definitions are motivated by a problem from David Griesheimer,
+of Bettis Labs: rather than tracking a particle through quadric
+surfaces in a CAD model, would it be more robust to compute the
+intervals of intersections with a segement?  We compare three methods
+to order line-quadric intersections.  Our methods, particularly the
+third, are specifically developed and tested for the case where only
+one pair of roots has a difference that is potentially overwhelmed by
+the rounding errors in the computation. We comment at the end how to
+handle pairs of quadric surfaces with have more than one pair of
+ambiguous roots.
 
 \section{Methods}
-Three line-quadric intersection comparsion methods are evaluated in
-terms of correctness, precision requirements, and FLOPs required.
-These methods include the ``Approximate Comparison Method'', the
-``Repeated Squaring Method'', and the ``Resultant Method''.
+In this work, we compare three methods---Approximate Comparison,
+Repeated Squaring, and Resultant---to sort the intersections with two
+quadrics, $Q_1$ and $Q_2$, with a given line $\ell(t)$, or
+equivalently, the roots of two quadratics, $a_1t^2+2b_1t+c_1=0$ and
+$a_2t^2+2b_2t+c_2=0$.  For each, we evaluate correctness, precision,
+and floating-point arithmetic operations (FLOPs) required.
 
 \subsection{Approximate Comparison Method}
 The approximate comparison method computes, for $i\in\{1, 2\}$, the
 roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$ approximately by
-computing each operation.  The order of the approximate roots can be
-calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
+computing each operation in IEEE 754 double precision.  To avoid
+subtractive cancellation, we calculate $r_i^{-\sign
+  b_i}=-c_i/({b_i+(\sign{b_i})\sqrt{b_i^2-a_ic_i}}).$ The order of the
+approximate roots can be calculated exactly
+as~$\sign(r_1^\pm-r_2^\pm)$.
+
 
 Though this method will usually give correct orders, it clearly does
 not guarantee them, since intermediate computations, such as the
@@ -504,9 +484,9 @@ related to the distance between the roots of a polynomial, this will
 tell us exactly if both roots are shared, and if not, the order of the
 non-shared roots.
 
-\section{Acknowledgements}
-We would like to acknowledge support from a contract with the Bettis
-Atomic Power Laboratory.
+\section{Acknowledgment}
+We thank David Griesheimer for discussions on this problem, and both NSF and Bettis Labs for their support of this research. 
 
-\bibliographystyle{plain} \bibliography{resultantmethod}
+\bibliographystyle{plain}
+\bibliography{resultantmethod}
 \end{document}
