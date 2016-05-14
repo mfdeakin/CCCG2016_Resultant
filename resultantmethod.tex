@@ -13,12 +13,17 @@
 \usepackage{listings}
 \usepackage{courier}
 \usepackage{float}
+\usepackage{color}
+
+\usepackage{lipsum}
 
 \DeclareMathOperator{\sign}{sign}
 \DeclareMathOperator{\fma}{fma}
 \DeclareMathOperator{\round}{round}
 \def\Jack#1{{\bf [[#1]]}\ignorespaces}
+\def\Michael#1{{\bf \color{red} [[#1]]}\ignorespaces}
 %\def\Jack#1{\ignorespaces}%% uncomment to hide remarks
+%\def\Michael#1{\ignorespaces}%% uncomment to hide remarks
 
 \lstset{basicstyle=\ttfamily}
 
@@ -47,38 +52,63 @@
 
 
 \section{Introduction}
-In this work, we are concerned with ordering the points of line-quadric
-intersections in 3 dimensions, where the inputs are representable exactly using $b$-bit fixed-point numbers.
-We will actually use floating point in storage and computation, but our guarantees will be for well-scaled inputs, which are easiest described as fixed-point. 
-A {\it representable point}~$c$ or {\it representable vector}~$v$ is $3$-tuples of representable numbers $(x, y, z)$. The line segment from point~$c$ to~$c+v$ is defined parametrically for $t\in [0,1]$ as $\ell(t)=c+tv$; note that there may be no representable points on line $\ell$ except its endpoints (and even $c+v$ may not be representable, if the addition carries to $b+1$~bits.)
+In this work, we are concerned with ordering the points of
+line-quadric intersections in 3 dimensions, where the inputs are
+representable exactly using $b$-bit fixed-point numbers.  We will
+actually use floating point in storage and computation, but our
+guarantees will be for well-scaled inputs, which are easiest described
+as fixed-point.  A {\it representable point}~$c$ or {\it representable
+  vector}~$v$ is $3$-tuples of representable numbers $(x, y, z)$. The
+line segment from point~$c$ to~$c+v$ is defined parametrically for
+$t\in [0,1]$ as $\ell(t)=c+tv$; note that there may be no
+representable points on line $\ell$ except its endpoints (and even
+$c+v$ may not be representable, if the addition carries to
+$b+1$~bits.)
 
 A quadratic is an implicit surface defined by 10 representable coefficients
 \begin{align*}Q(x, y, z)=q_{xx} x^2 &+ q_{xy} xy + q_{xz} xz + q_x x + \dots \\
 &+ q_{zz} z^2 + q_{z} z + q_c = 0.
 \end{align*}
-For more accuracy, we can allow more precision for the linear and quadratic coefficients, since we will need $3b$~bits to exactly multiply out the quadratic terms, or we can use a representable symmetric $3\times 3$ matrix~$M$, a representable vector~$v$, and a $3b$-bit constant~$C$ to give a different set of quadrics $\tilde Q(p) = (p-v)^TM(p-v) = C$ that are closed under all representable translations of~$v$. Whichever representation is chosen, the parameter values for line-quadric intersections are the roots of $Q(\ell(t))=0$, which can be expressed as a quadratic $At^2+2Bt+C=0$ whose coefficients can have at most $3b+4$ bits.  (Four carry bits suffice to sum the $3b$-bit products; $b=16$ allows exact coefficient computation as IEEE 754 doubles; $b=33$ as pairs of doubles.)   
+For more accuracy, we can allow more precision for the linear and
+quadratic coefficients, since we will need $3b$~bits to exactly
+multiply out the quadratic terms, or we can use a representable
+symmetric $3\times 3$ matrix~$M$, a representable vector~$v$, and a
+$3b$-bit constant~$C$ to give a different set of quadrics $\tilde Q(p)
+= (p-v)^TM(p-v) = C$ that are closed under all representable
+translations of~$v$. Whichever representation is chosen, the parameter
+values for line-quadric intersections are the roots of $Q(\ell(t))=0$,
+which can be expressed as a quadratic $At^2+2Bt+C=0$ whose
+coefficients can have at most $3b+4$ bits.  (Four carry bits suffice
+to sum the $3b$-bit products; $b=16$ allows exact coefficient
+computation as IEEE 754 doubles; $b=33$ as pairs of doubles.)
 
-These definitions are motivated by a problem from David Griesheimer, of Bettis Labs:  rather than tracking a particle through quadric surfaces in a CAD model, would it be more robust to compute the intervals of intersections with a segement?  
-We compare three methods to order line-quadric intersections.
-Our methods, particularly the third,  are specifically 
-developed and tested for the case where only one pair of roots has a difference
-that is potentially overwhelmed by the rounding errors in the
-computation. We comment at the end how to handle pairs of quadric
-surfaces with have more than one pair of ambiguous roots.
+These definitions are motivated by a problem from David Griesheimer,
+of Bettis Labs: rather than tracking a particle through quadric
+surfaces in a CAD model, would it be more robust to compute the
+intervals of intersections with a segement?  We compare three methods
+to order line-quadric intersections.  Our methods, particularly the
+third, are specifically developed and tested for the case where only
+one pair of roots has a difference that is potentially overwhelmed by
+the rounding errors in the computation. We comment at the end how to
+handle pairs of quadric surfaces with have more than one pair of
+ambiguous roots.
 
 \section{Methods}
-In this work, we compare three  methods---Approximate Comparison,
-Repeated Squaring, and Resultant---to sort the intersections with two quadrics, $Q_1$ and $Q_2$, with a given line $\ell(t)$, or equivalently, the roots of two quadratics, $a_1t^2+2b_1t+c_1=0$ and $a_2t^2+2b_2t+c_2=0$.  
-For each, we evaluate correctness, precision, and floating-point arithmetic operations (FLOPs) required.
+In this work, we compare three methods---Approximate Comparison,
+Repeated Squaring, and Resultant---to sort the intersections with two
+quadrics, $Q_1$ and $Q_2$, with a given line $\ell(t)$, or
+equivalently, the roots of two quadratics, $a_1t^2+2b_1t+c_1=0$ and
+$a_2t^2+2b_2t+c_2=0$.  For each, we evaluate correctness, precision,
+and floating-point arithmetic operations (FLOPs) required.
 
 \subsection{Approximate Comparison}
 The approximate comparison method computes, for $i\in\{1, 2\}$, the
 roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$ approximately by
-computing each operation in IEEE 754 double precision or in extended precision.  Actually, to avoid subtractive cancellation, we calculate one of the two roots as 
+computing each operation in IEEE 754 double precision or in extended precision.  
+Actually, to avoid subtractive cancellation, we calculate one of the two roots as 
 $r_i^{-\sign b_i}=-c_i/({b_i+(\sign{b_i})\sqrt{b_i^2-a_ic_i}})$.
 The order of two approximate roots can be
 calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
-
 
 The rounding of floating point arithmetic means that even with representable input, the correct order is not guaranteed unless we establish a gap theorem~\cite{Canny,EMT} and compute with sufficient precision.   
 Without a guarantee,  this method
@@ -232,33 +262,15 @@ of time the sorting process took, the number of comparisons made at
 higher precision, and whether the results of the two algorithms
 approximately matched.  The C++ STL sort function was used to sort the
 computed list of intersections, and the POSIX clock\_gettime function
-was used for timing.  This is not an entirely fair comparison, for
-several reasons.
+was used for timing.
 
-The first is that the approximate comparison method would always
-compute the increased precision result, regardless of whether it was
-necessary.  This is unfair because it avoids the step of determining
-whether the increase was actually necessary, which would be performed
-in a sane system.  This skews the results slightly in favor of the naive
-method.
-
-The second issue with the comparison is that the resultant method
-cannot always be used.  The resultant method can be used only when two
-polynomials do not share roots.  It also requires that only one sign
-be ambiguous.  Furthermore, though the resultant can be used to
-compute the order of intersections for an arbitrary number of roots,
-we have only implemented it for the case of~$2$ (possibly repeated)
-roots for both polynomials.  This means that the line must intersect
-the surface twice for this method to be usable.
-
-For the sake of performance comparisons, the first two limitations on
-the resultant method can be ignored.  This is because our tests here
-are for speed more than accuracy.  The third issue cannot be ignored,
-but can be avoided in the construction of our test scenes.  Any scene
-which is used to evaluate the speed of the resultant method in our
-test must ensure a line will either intersect a surface twice, or
-intersect it once with a multiplicity of two.  This is guaranteed for
-most surfaces, but can occur on rare occasion with parabolic
+Since we implemented the methods in such a way that they implicitly
+expect a quadratic polynomial, we have a limitation on the types of
+quadric surfaces allowed in the test scenes.  Any scene which is used
+to evaluate the speed of the methods in our test must ensure a line
+will either intersect a surface twice, intersect it once with a
+multiplicity of two, or not intersect it at all.  This is guaranteed
+for most surfaces, but can occur on rare occasion with parabolic
 cylinders, hyperbolic paraboloids, and elliptic paraboloids.  To
 prevent this issue from occurring, we do not include these types of
 quadric surfaces in our test scenes.  We also do not include any
@@ -337,24 +349,81 @@ point score of 1408.  On average, the Ubuntu computer was capable of
 about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
 FLOPS than the Gentoo computer.
 
-\section{Results}
+\section{Experimental Results}
+The results of the experiments are shown in Table \ref{tab:times}.
+Each method took approximately the same amount of time to process each
+quadric, though the resultant method consistently took the longest.
+This is because the resultant method caches some of the intermediate
+values when the first comparison is made, shifting some portion of the
+cost from the ms/Comp term to the ms/Quadric term.  The
+amount that is shifted is determined by how many quadrics a random
+line can be expected to intersect, and how many ambiguous orderings a
+single line-quadric intersection will be involved in.  The increased
+precision approximation method also took longer than the machine
+precision approximation method for essentially the same reason as the
+resultant method.  It's not entirely clear why it took less time than
+the resultant method, as it performs harder computations on the first
+use of the quadrics roots than the resultant.
 
-\begin{table}[p]
-  \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
-  \label{tab:times}
-  \centering{
-    \input{comparison_table.tex}
-  }
-\end{table}
+The second term is approximately how much time each comparison takes.
+Not surprisingly, the machine precision method took very little time
+per comparison.  This is because nearly all of it's work is done on a
+per quadric basis - the roots are calculated for each quadric once,
+and only a subtraction is required for each comparison. The resultant
+method also performed significantly better than the increased
+precision method on a per comparison basis.  This is as expected,
+given the reduction in the amount of precision, the number of FLOPs
+required, and the lack of operations such as square roots and
+divisions.
+
+The constant term appears to be rather meaningless when we measure the
+ms/Quadric term.  This is good, because it shows that when the
+ms/Quadric term is not measured, that is mainly what the constant term
+consists of.  Thus, we expect, and observe the same results as in the
+ms/Quadric term.  It also means there are probably not any other terms
+which should be considered.
 
 \begin{figure}
-  \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
-  \caption{Number of Comparisons vs. the Evaluation Time (ms); {\bf Red:
-      Approximation Method at $12\times$ the Coefficient Precision};
-    {\bf Blue: Resultant Method}}
+  \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
+  \caption{Typical plot of Number of Comparisons vs. the Evaluation
+    Time (ms); {\bf Red: Approximation Method at $24\times$ the
+      Input Precision}; {\bf Green: Approximation Method at Input Precision}; {\bf Blue: Resultant Method}}
+  \label{fig:linefit}
 \end{figure}
 
+Figure \ref{fig:linefit} shows a plot of the results from one of the
+tests.  It appears to confirm our expectation that the time required
+is linearly coorelated with the number of precision increases.
+
+\begin{table}[p]
+  \captionsetup{oneside, margin={1cm,0cm}, width=\textwidth}
+  \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
+  \label{tab:times}
+  \input{comparison_table.tex}
+\end{table}
+
 \section{Conclusion}
+In this paper we showed how the resultant method can improve the
+accuracy in comparing a single line-quadric intersections at a much
+lower cost than simply increasing the amount of precision.  This
+method also satisfies our notion of correctness, unlike the
+approximation method.  This method is applicable in many cases and can
+provide significant improvements to performance over the regular
+method of increasing precision.
+
+\Michael{I've got the method for when multiple orders are ambiguous,
+  but haven't mentioned it.  It's an obvious place to go, just not
+  very frequently useful.  Should I include this as future work?}
+
+A remaining problem to solve is computing the intersection order
+correctly when the order of mutliple roots is undetermined.  When a
+shared root is detected, it would be easy to determine if the other
+roots are shared as well with the discriminants.  Because the terms of
+the discriminants are fast to compute exactly, they could be compared
+exactly relatively easily.  Since the discriminant is quadratically
+related to the distance between the roots of a polynomial, this will
+tell us exactly if both roots are shared, and if not, the order of the
+non-shared roots.
 
 \section{Acknowledgment}
 We thank David Griesheimer for discussions on this problem, and both NSF and Bettis Labs for their support of this research. 
