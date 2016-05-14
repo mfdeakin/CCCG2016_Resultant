@@ -13,11 +13,16 @@
 \usepackage{listings}
 \usepackage{courier}
 \usepackage{float}
+\usepackage{color}
+
+\usepackage{lipsum}
 
 \DeclareMathOperator{\sign}{sign}
 \DeclareMathOperator{\fma}{fma}
 \DeclareMathOperator{\round}{round}
 \def\Jack#1{{\bf [[#1]]}\ignorespaces}
+%\def\Jack#1{\ignorespaces}%% uncomment to hide remarks
+\def\Michael#1{{\bf \color{red} [[#1]]}\ignorespaces}
 %\def\Jack#1{\ignorespaces}%% uncomment to hide remarks
 
 \lstset{basicstyle=\ttfamily}
@@ -336,33 +341,15 @@ of time the sorting process took, the number of comparisons made at
 higher precision, and whether the results of the two algorithms
 approximately matched.  The C++ STL sort function was used to sort the
 computed list of intersections, and the POSIX clock\_gettime function
-was used for timing.  This is not an entirely fair comparison, for
-several reasons.
+was used for timing.
 
-The first is that the approximate comparison method would always
-compute the increased precision result, regardless of whether it was
-necessary.  This is unfair because it avoids the step of determining
-whether the increase was actually necessary, which would be performed
-in a sane system.  This skews the results slightly in favor of the naive
-method.
-
-The second issue with the comparison is that the resultant method
-cannot always be used.  The resultant method can be used only when two
-polynomials do not share roots.  It also requires that only one sign
-be ambiguous.  Furthermore, though the resultant can be used to
-compute the order of intersections for an arbitrary number of roots,
-we have only implemented it for the case of~$2$ (possibly repeated)
-roots for both polynomials.  This means that the line must intersect
-the surface twice for this method to be usable.
-
-For the sake of performance comparisons, the first two limitations on
-the resultant method can be ignored.  This is because our tests here
-are for speed more than accuracy.  The third issue cannot be ignored,
-but can be avoided in the construction of our test scenes.  Any scene
-which is used to evaluate the speed of the resultant method in our
-test must ensure a line will either intersect a surface twice, or
-intersect it once with a multiplicity of two.  This is guaranteed for
-most surfaces, but can occur on rare occasion with parabolic
+Since we implemented the methods in such a way that they implicitly
+expect a quadratic polynomial, we have a limitation on the types of
+quadric surfaces allowed in the test scenes.  Any scene which is used
+to evaluate the speed of the methods in our test must ensure a line
+will either intersect a surface twice, intersect it once with a
+multiplicity of two, or not intersect it at all.  This is guaranteed
+for most surfaces, but can occur on rare occasion with parabolic
 cylinders, hyperbolic paraboloids, and elliptic paraboloids.  To
 prevent this issue from occurring, we do not include these types of
 quadric surfaces in our test scenes.  We also do not include any
@@ -441,25 +428,85 @@ point score of 1408.  On average, the Ubuntu computer was capable of
 about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
 FLOPS than the Gentoo computer.
 
-\section{Results}
+\section{Experimental Results}
+The results of the experiments are shown in Table \ref{tab:times}.
+Each method took approximately the same amount of time to process each
+quadric, though the resultant method consistently took the longest.
+This is because the resultant method caches some of the intermediate
+values when the first comparison is made, shifting some portion of the
+cost from the ms/Comp term to the ms/Quadric term.  The
+amount that is shifted is determined by how many quadrics a random
+line can be expected to intersect, and how many ambiguous orderings a
+single line-quadric intersection will be involved in.  The increased
+precision approximation method also took longer than the machine
+precision approximation method for essentially the same reason as the
+resultant method.  It's not entirely clear why it took less time than
+the resultant method, as it performs harder computations on the first
+use of the quadrics roots than the resultant.
 
-\begin{table}[p]
-  \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
-  \label{tab:times}
-  \centering{
-    \input{comparison_table.tex}
-  }
-\end{table}
+The second term is approximately how much time each comparison takes.
+Not surprisingly, the machine precision method took very little time
+per comparison.  This is because nearly all of it's work is done on a
+per quadric basis - the roots are calculated for each quadric once,
+and only a subtraction is required for each comparison. The resultant
+method also performed significantly better than the increased
+precision method on a per comparison basis.  This is as expected,
+given the reduction in the amount of precision, the number of FLOPs
+required, and the lack of operations such as square roots and
+divisions.
+
+The constant term appears to be rather meaningless when we measure the
+ms/Quadric term.  This is good, because it shows that when the
+ms/Quadric term is not measured, that is mainly what the constant term
+consists of.  Thus, we expect, and observe the same results as in the
+ms/Quadric term.  It also means there are probably not any other terms
+which should be considered.
 
 \begin{figure}
-  \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
-  \caption{Number of Comparisons vs. the Evaluation Time (ms); {\bf Red:
-      Approximation Method at $12\times$ the Coefficient Precision};
-    {\bf Blue: Resultant Method}}
+  \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
+  \caption{Typical plot of Number of Comparisons vs. the Evaluation
+    Time (ms); {\bf Red: Approximation Method at $24\times$ the
+      Input Precision}; {\bf Green: Approximation Method at Input Precision}; {\bf Blue: Resultant Method}}
+  \label{fig:linefit}
 \end{figure}
 
-\section{Conclusion}
+Figure \ref{fig:linefit} shows a plot of the results from one of the
+tests.  It appears to confirm our expectation that the time required
+is linearly coorelated with the number of precision increases.
 
-\bibliographystyle{plain}
-\bibliography{resultantmethod}
+\begin{table}[p]
+  \captionsetup{oneside, margin={1cm,0cm}, width=\textwidth}
+  \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
+  \label{tab:times}
+  \input{comparison_table.tex}
+\end{table}
+
+\section{Conclusion}
+In this paper we showed how the resultant method can improve the
+accuracy in comparing a single line-quadric intersections at a much
+lower cost than simply increasing the amount of precision.  This
+method also satisfies our notion of correctness, unlike the
+approximation method.  This method is applicable in many cases and can
+provide significant improvements to performance over the regular
+method of increasing precision.
+
+\Michael{I've got the method for when multiple orders are ambiguous,
+  but haven't mentioned it.  It's an obvious place to go, just not
+  very frequently useful.  Should I include this as future work?}
+
+A remaining problem to solve is computing the intersection order
+correctly when the order of mutliple roots is undetermined.  When a
+shared root is detected, it would be easy to determine if the other
+roots are shared as well with the discriminants.  Because the terms of
+the discriminants are fast to compute exactly, they could be compared
+exactly relatively easily.  Since the discriminant is quadratically
+related to the distance between the roots of a polynomial, this will
+tell us exactly if both roots are shared, and if not, the order of the
+non-shared roots.
+
+\section{Acknowledgements}
+We would like to acknowledge support from a contract with the Bettis
+Atomic Power Laboratory.
+
+\bibliographystyle{plain} \bibliography{resultantmethod}
 \end{document}
