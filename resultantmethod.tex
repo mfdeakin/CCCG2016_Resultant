@@ -90,7 +90,7 @@ to order line-quadric intersections.  Our methods, particularly the
 third, are specifically developed and tested for the case where only
 one pair of roots has a difference that is potentially overwhelmed by
 the rounding errors in the computation. We comment at the end how to
-handle pairs of quadric surfaces with have more than one pair of
+handle pairs of quadric surfaces which have more than one pair of
 ambiguous roots.
 
 \section{Methods}
@@ -118,6 +118,10 @@ Moreover, the roots can be reused in a scene of many quadrics.
 In the next section, we experimentally apply this method using machine precision and extended precision.
 
 \subsection{Repeated Squaring}
+\Michael{I'm worried my notation is confusing here. The $\pm$ and
+  $\mp$ are not consistent in a single equation, just as we perform
+  the manipulations}
+
 The repeated squaring method computes $\sign(r_1^\pm-r_2^\pm)$ by algebraic
 manipulations to eliminate division and square root
 operations, leaving multiplications and additions whose precision requirements can be bounded. 
@@ -131,23 +135,36 @@ r_2^\mp))$.  When simplified, the final sign is computed
 from~$a_2^2b_1^2-2a_1a_2^2c_1+2a_1^2a_2c_2-a_1a_2b_1b_2\pm
 \sqrt{(a_1a_2b_2-a_2^2b_1)^2(b_1^2-4a_1c_1)}$.   
 
-The expression under the radical is correctly computed with $8\times$ the input precision; the remaining expression can be evaluated to a little more than $4\times$ input precision in floating point, or can be evaluated in fixed point in $8\times$ input precision by isolating the radical and squaring one last time. 
+The expression under the radical is correctly computed with $8\times$
+the input precision; the remaining expression can be evaluated to a
+little more than $4\times$ input precision in floating point, or can
+be evaluated in fixed point in $8\times$ input precision by isolating
+the radical and squaring one last time.
 
-This method not only requires high precision, but also a large number of FLOPs.  Computing the
-unambiguous sign of the difference of the roots requires 15 FLOPs
-total, and  correctly computing the final sign requires another 24 FLOPs.
-Unfortunately,  many of the computed terms require coefficients
-from both polynomials; only the discriminants can precomputed, which reduces the number of FLOPs by 8.
+This method not only requires high precision, but also a large number
+of FLOPs.  Computing the unambiguous sign of the difference of the
+roots requires 15 FLOPs total, and correctly computing the final sign
+requires another 24 FLOPs.  Unfortunately, many of the computed terms
+require coefficients from both polynomials; only the discriminants,
+squares, and products can precomputed, which reduces the number of
+FLOPs by 14.  This brings us to 25 FLOPs per comparison, with an
+initialization cost of 14 FLOPs per quadric.
 
-Note that this method uses our assumption that we know the sign of $\sign(r_1^\pm-r_2^\mp)$ while computing
-$\sign(r_1^\pm-r_2^\pm)$, but we can determine this from a lower precision test, since the two roots $r_2^\mp$ are on opposite sides of $-b^2/a^2$..
+\Michael{This isn't what I wanted to convey, as this method will work
+  regardless of the sides they're on...}
+
+Note that this method uses our assumption that we know the sign of
+$\sign(r_1^\pm-r_2^\mp)$ while computing $\sign(r_1^\pm-r_2^\pm)$, but
+we can determine this from a lower precision test, since the two roots
+$r_2^\mp$ are on opposite sides of $-b^2/a^2$.
 
 \subsection{Resultant}
-The resultant method  computes the order of two intersections from
- the resultant for their polynomials, which can be written as the determinant
-of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.  The general Sylvester Matrix for
-polynomials~$P(t)=p_m t^m + \dots + p_0$ and~$Q(t)=q_n t^n + \dots +
-q_0$ is defined in Equation \ref{eq:sylv}:
+The resultant method computes the order of two intersections from the
+resultant for their polynomials, which can be written as the
+determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
+The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
+p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined in Equation
+\ref{eq:sylv}:
 \begin{equation}
   res(P, Q)=\begin{pmatrix}
     p_m & \dots & & p_0 & 0 & & 0\\
@@ -162,9 +179,9 @@ q_0$ is defined in Equation \ref{eq:sylv}:
   \label{eq:sylv}
 \end{equation}
 
-The resultant is also the product of the differences of $P$s roots,
-$a_1$, \dots, $a_n$, and $Q$'s roots,  $b_1$, \dots, $b_m$, 
- as in Equation~\ref{eq:resultant}.~\cite[Section~6.4]{cheeyap}
+The resultant is also the product of the differences of $P$'s roots,
+$a_1$, \dots, $a_n$, and $Q$'s roots, $b_1$, \dots, $b_m$, as in
+Equation~\ref{eq:resultant}.~\cite[Section~6.4]{cheeyap}
 \begin{equation}
   res(P, Q)=p_m^n q_n^m \prod_{i=1}^m\prod_{j=1}^n (a_i-b_j)
   \label{eq:resultant}
@@ -180,32 +197,35 @@ $a_1$, \dots, $a_n$, and $Q$'s roots,  $b_1$, \dots, $b_m$,
 
 The two methods of computing the resultant provides us with an extra
 method of computing the sign of one of the differences of the two
-roots.  Under our assumption that we know the order of all pairs or roots except, say, $a_1$ and $b_1$, 
-we can compute $\sign(a_1-b_1)$ from the determinant and known signs, as in
-Equation \ref{eq:signroot}.  The signs need not be multiplied; we simply count the negatives.  With quadratics, $m=n=2$, so the signs of 
- the leadig ~$p_2^2$ and~$q_2^2$ will be positive and can be ignored.
+roots.  Under our assumption that we know the order of all pairs or
+roots except, say, $a_1$ and $b_1$, we can compute $\sign(a_1-b_1)$
+from the determinant and known signs, as in Equation
+\ref{eq:signroot}.  The signs need not be multiplied; we simply count
+the negatives.  With quadratics, $m=n=2$, so the signs of the leading
+~$p_2^2$ and~$q_2^2$ will be positive and can be ignored.
 
-The determinant 
-be computed more cheaply than correctly computing the sign of the
-differences of roots of the polynomials.  Computing the roots of the
-polynomials requires seven additions and multiplications, plus the
-expensive square root and two divisions.  (For reference, it has been
-shown that a square root costs approximately the same number of
-operations as~$\frac{3}{2}$ additions at the same precision~\cite{karatsuba}.)  To compute the roots, two multiplications and an
-addition are computed at 6 times the precision of the input.  The
-square root and two additions are computed at 12 times the initial
-precision.  The two divisions are computed at 24 times the initial
-precision.  To actually perform the comparison, one final subtraction
-is required at 24 times the initial precision. This means each
-comparison requires only 1 FLOP, with an initialization cost of 10
-FLOPs per intersection.
+The determinant can be computed more cheaply than correctly computing
+the sign of the differences of roots of the polynomials.  Computing
+the roots of the polynomials requires seven additions and
+multiplications, plus the expensive square root and two divisions.
+(For reference, it has been shown that a square root costs
+approximately the same number of operations as~$\frac{3}{2}$ additions
+at the same precision~\cite{karatsuba}.)  To compute the roots, two
+multiplications and an addition are computed at 6 times the precision
+of the input.  The square root and two additions are computed at 12
+times the initial precision.  The two divisions are computed at 24
+times the initial precision.  To actually perform the comparison, one
+final subtraction is required at 24 times the initial precision. This
+means each comparison requires only 1 FLOP, with an initialization
+cost of 10 FLOPs per intersection.
 
-Computing a general $4\times 4$ determinant costs about
-120 multiplications.  Computing the determinant of the Sylvester
-matrix itself would naively take~$35$ FLOPs for each comparison.  
-We can write the determinant in terms of the discriminants and other precomputed $2\time 2$ minors from each polynomial, as in Equation
-\ref{eq:sylvpoly}.    This brings us to 11 FLOPs per comparison, with an initialization cost of 7
-FLOPs per intersection.
+Computing a general $4\times 4$ determinant costs about 120
+multiplications.  Computing the determinant of the Sylvester matrix
+itself would naively take~$35$ FLOPs for each comparison.  We can
+write the determinant in terms of the discriminants and other
+precomputed $2\time 2$ minors from each polynomial, as in Equation
+\ref{eq:sylvpoly}.  This brings us to 11 FLOPs per comparison, with an
+initialization cost of 7 FLOPs per intersection.
 
 \begin{figure*}
   \begin{equation*}
@@ -230,31 +250,29 @@ FLOPs per intersection.
   \end{align}
 \end{figure*}
 
-\Jack{Not fair to allow one way to precompute, but not precompute root values; I'd delete:\\\rm
-This reduction theoretically makes this method slightly cheaper than
-computing the roots of the polynomial at higher precision.  Computing
-the determinant this way always requires six multiplications and five
-additions at 4 times the precision of the coefficients.  Computing the
-per-polynomial values requires six multiplications and one subtraction
-at 6 times the precision of the input.}
+\section{Experimental Evaluation}
+In this work, we experimentaly evaluated the three methods with test
+cases that are likely to result in incorrect orders if the basic
+approximate comparison method is used.  For each, we evaluate how
+frequently the results disagree with a naive increased precision
+approximation of the order, and how long each method takes to perform
+a comparison.
 
-
-\section{Evaluation}
 \subsection{Evaluation Methods}
-The approximate comparison and resultant methods were implemented in a
-C++ program for evaluation.  MPFR was used to implement the increased
-precision in both cases.
+The approximate comparison, increased precision approximate
+comparison, and resultant methods were implemented in a C++ program
+for evaluation.  MPFR was used to implement the increased precision
+when required.  This program takes a scene of quadric surfaces and
+generates random lines which are then intersected with the surfaces.
 
-To ensure the results from both methods were consistent, the ordered
-lists of roots were divided into regions based on a relative threshold
-heuristic.  This heuristic put an upper limit on the largest bit that
-could change in a single region.  To compensate for gradual changes in
-a region, this heuristic depended only on the largest root seen in the
-region to this point.  If the number of roots in the region was
-different for the two methods, the results are listed as possibly
-being erroneous.  Note that this method does not verify that the
-regions contain the same quadrics; as the quadrics in each region can
-vary based on the order of previously seen quadrics.
+To ensure the results from the methods were consistent, the ordered
+lists of roots from the resultant and approximate comparison methods
+were compared against the ordered list from the increased precision
+approximate method.  This comparison verifies that each quadric was in
+the correct position and that the approximate values of the roots were
+the same.  This may fail if a line simultaneously intersects two
+quadrics, so the scenes of surfaces are designed without
+intersections.
 
 Once the line was generated, the intersections and their order were
 computed along with some statistics.  These statistics were the amount
@@ -410,10 +428,6 @@ method also satisfies our notion of correctness, unlike the
 approximation method.  This method is applicable in many cases and can
 provide significant improvements to performance over the regular
 method of increasing precision.
-
-\Michael{I've got the method for when multiple orders are ambiguous,
-  but haven't mentioned it.  It's an obvious place to go, just not
-  very frequently useful.  Should I include this as future work?}
 
 A remaining problem to solve is computing the intersection order
 correctly when the order of mutliple roots is undetermined.  When a
