@@ -333,17 +333,17 @@ scene of Packed Spheres are shown in Figure \ref{fig:testScenes}.
   
   \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle.png}
   \caption{Test Scenes, from Top to Bottom:
-    {\bf Packed Spheres};
-    {\bf Shifted Ellipsoids}}
+    {\bf 1331 Packed Spheres};
+    {\bf 10 Nested Spheres}}
   \label{fig:testScenes}
 \end{figure}
 
 \subsection{Analysis}
 To analyze the results, we computed the least squares linear fit of
-the timing data.  For the Packed Ellipsoids, we used the number of
+the timing data.  For the Packed Spheres, we used the number of
 comparisons made as our independent variable, and computed a linear
-coefficient for it along with a constant term.  For the set of Shifted
-Ellipsoids, we were able to aggregate the test results for each type
+coefficient for it along with a constant term.  For the set of Nested
+Spheres, we were able to aggregate the test results for each type
 of scene.  This allowed us to fit the line to two independent
 variables; the number of comparisons made, and the number of quadric
 surfaces in the scene.  Fitting the time it takes to make a comparison
@@ -424,9 +424,10 @@ which should be considered.
 
 \begin{figure}
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
-  \caption{Typical plot of Number of Comparisons vs. the Evaluation
-    Time (ms); {\bf Red: Approximation Method at $24\times$ the
-      Input Precision}; {\bf Green: Approximation Method at Input Precision}; {\bf Blue: Resultant Method}}
+  \caption{Number of Comparisons vs. the Evaluation Time (ms); 10000
+    tests on the Gentoo machine; {\bf Red: Approximation Method at
+      $24\times$ the Input Precision}; {\bf Green: Approximation
+      Method at Input Precision}; {\bf Blue: Resultant Method}}
   \label{fig:linefit}
 \end{figure}
 
