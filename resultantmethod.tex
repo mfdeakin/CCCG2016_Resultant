@@ -54,33 +54,33 @@
 \section{Introduction}
 In this work, we are concerned with ordering the points of
 line-quadric intersections in 3 dimensions, where the inputs are
-representable exactly using $b$-bit fixed-point numbers.  We will
+representable exactly using $w$-bit fixed-point numbers.  We will
 actually use floating point in storage and computation, but our
 guarantees will be for well-scaled inputs, which are easiest described
-as fixed-point.  A {\it representable point}~$c$ or {\it representable
-  vector}~$v$ is $3$-tuples of representable numbers $(x, y, z)$. The
-line segment from point~$c$ to~$c+v$ is defined parametrically for
-$t\in [0,1]$ as $\ell(t)=c+tv$; note that there may be no
+as fixed-point.  A {\it representable point}~$q$ or {\it representable
+  vector}~$v$ is a $3$-tuple of representable numbers $(x, y, z)$. The
+line segment from point~$q$ to~$q+v$ is defined parametrically for
+$t\in [0,1]$ as $\ell(t)=q+tv$; note that there may be no
 representable points on line $\ell$ except its endpoints (and even
-$c+v$ may not be representable, if the addition carries to
-$b+1$~bits.)
+$q+v$ may not be representable, if the addition carries to
+$w+1$~bits.)
 
-A quadratic is an implicit surface defined by 10 representable coefficients
+A quadratic is an implicit surface defined by its 10 representable coefficients,
 \begin{align*}Q(x, y, z)=q_{xx} x^2 &+ q_{xy} xy + q_{xz} xz + q_x x + \dots \\
 &+ q_{zz} z^2 + q_{z} z + q_c = 0.
 \end{align*}
 For more accuracy, we can allow more precision for the linear and
-quadratic coefficients, since we will need $3b$~bits to exactly
+quadratic coefficients, since we will need $3w$~bits to exactly
 multiply out the quadratic terms, or we can use a representable
 symmetric $3\times 3$ matrix~$M$, a representable vector~$v$, and a
-$3b$-bit constant~$C$ to give a different set of quadrics $\tilde Q(p)
-= (p-v)^TM(p-v) = C$ that are closed under all representable
-translations of~$v$. Whichever representation is chosen, the parameter
+$3w$-bit constant~$R$ to give a different set of quadrics $\tilde Q(p)
+= (p-v)^TM(p-v) = R$ that is closed under representable
+translations of~$v$. Whichever definition of quadrics is chosen, the parameter
 values for line-quadric intersections are the roots of $Q(\ell(t))=0$,
-which can be expressed as a quadratic $At^2+2Bt+C=0$ whose
-coefficients can have at most $3b+4$ bits.  (Four carry bits suffice
-to sum the $3b$-bit products; $b=16$ allows exact coefficient
-computation as IEEE 754 doubles; $b=33$ as pairs of doubles.)
+which can be expressed as a quadratic $at^2+2bt+c=0$ whose
+coefficients can have at most $3w+4$~bits.  (Four carry bits suffice
+to sum the $3w$-bit products; $w=16$ allows exact coefficient
+computation as IEEE 754 doubles; $w=33$ as pairs of doubles.)
 
 These definitions are motivated by a problem from David Griesheimer,
 of Bettis Labs: rather than tracking a particle through quadric
@@ -90,11 +90,11 @@ to order line-quadric intersections.  Our methods, particularly the
 third, are specifically developed and tested for the case where only
 one pair of roots has a difference that is potentially overwhelmed by
 the rounding errors in the computation. We comment at the end how to
-handle pairs of quadric surfaces which have more than one pair of
+handle pairs of quadric surfaces that have more than one pair of
 ambiguous roots.
 
 \section{Methods}
-In this work, we compare three methods---Approximate Comparison,
+This section outlines three methods---Approximate Comparison,
 Repeated Squaring, and Resultant---to sort the intersections with two
 quadrics, $Q_1$ and $Q_2$, with a given line $\ell(t)$, or
 equivalently, the roots of two quadratics, $a_1t^2+2b_1t+c_1=0$ and
@@ -107,10 +107,11 @@ roots~$r_i^\pm=({b_i\pm\sqrt{b_i^2-a_ic_i}})/{a_i}$ approximately by
 computing each operation in IEEE 754 double precision or in extended precision.  
 Actually, to avoid subtractive cancellation, we calculate one of the two roots as 
 $r_i^{-\sign b_i}=-c_i/({b_i+(\sign{b_i})\sqrt{b_i^2-a_ic_i}})$.
-The order of two approximate roots can be
+The order of any two chosen approximate roots can be
 calculated exactly as~$\sign(r_1^\pm-r_2^\pm)$.
 
-The rounding of floating point arithmetic means that even with representable input, the correct order is not guaranteed unless we establish a gap theorem~\cite{Canny,EMT} and compute with sufficient precision.   
+The rounding of floating point arithmetic means that even with representable input, the correct order 
+is not guaranteed unless we establish a gap theorem~\cite{Canny,EMT} and compute with sufficient precision.   
 Without a guarantee,  this method
 requires very little computation.  Computing both roots takes
 $12$ FLOPs, with one more to compute the sign of the difference.   
@@ -120,7 +121,7 @@ In the next section, we experimentally apply this method using machine precision
 \subsection{Repeated Squaring}
 \Michael{I'm worried my notation is confusing here. The $\pm$ and
   $\mp$ are not consistent in a single equation, just as we perform
-  the manipulations}
+  the manipulations}\Jack{That didn't bother me.}
 
 The repeated squaring method computes $\sign(r_1^\pm-r_2^\pm)$ by algebraic
 manipulations to eliminate division and square root
@@ -151,12 +152,12 @@ FLOPs by 14.  This brings us to 25 FLOPs per comparison, with an
 initialization cost of 14 FLOPs per quadric.
 
 \Michael{This isn't what I wanted to convey, as this method will work
-  regardless of the sides they're on...}
+  regardless of the sides they're on...}\Jack{To find out which of $r_2^\pm$ is close to $r_1$,  compare $r_1$ with $-b^2/a^2$. You learn the sign of the difference with the other root as well.  E.g., if $r_1>-b^2/a_2$ then we know $r_1>r_2^-$ and want to compare $r_1?r_2^+$.  Do I need to spell that out? What method do you refer to?}
+ 
 
 Note that this method uses our assumption that we know the sign of
 $\sign(r_1^\pm-r_2^\mp)$ while computing $\sign(r_1^\pm-r_2^\pm)$, but
-we can determine this from a lower precision test, since the two roots
-$r_2^\mp$ are on opposite sides of $-b^2/a^2$.
+we can learn this from a lower precision test against $-b^2/a^2$, since $r_2^- \le -b^2/a^2 \le r_2^+$.
 
 \subsection{Resultant}
 The resultant method computes the order of two intersections from the
@@ -195,7 +196,7 @@ Equation~\ref{eq:resultant}.~\cite[Section~6.4]{cheeyap}
   \end{align}
 \end{figure*}
 
-The two methods of computing the resultant provides us with an extra
+The two expressions for the resultant provide us with another
 method of computing the sign of one of the differences of the two
 roots.  Under our assumption that we know the order of all pairs or
 roots except, say, $a_1$ and $b_1$, we can compute $\sign(a_1-b_1)$
@@ -251,27 +252,30 @@ initialization cost of 7 FLOPs per intersection.
 \end{figure*}
 
 \section{Experimental Evaluation}
-In this work, we experimentaly evaluated the three methods with test
-cases that are likely to result in incorrect orders if the basic
-approximate comparison method is used.  For each, we evaluate how
-frequently the results disagree with a naive increased precision
-approximation of the order, and how long each method takes to perform
+We experimentaly evaluated the approximate method, with both machine precision and extended precision, 
+and the resultant method against test
+cases that aimed to increase the chance of incorrect orders from 
+approximate comparisons.  We evaluate how
+frequently the exact and approximate results agree,  and how long each method takes to perform
 a comparison.
 
-\subsection{Evaluation Methods}
+\subsection{Experimental Setup}
 The approximate comparison, increased precision approximate
 comparison, and resultant methods were implemented in a C++ program
-which computed the line-quadric intersection order of 100k random
-lines with a scene of quadric surfaces.  MPFR was used to implement
+that computed the line-quadric intersection order of 100k random
+lines with a scene of quadric surfaces.  MPFR\Jack{cite or url footnote} was used to implement
 the increased precision when required.
+
+\Jack{Describe the data first.}
 
 The first step of the evaluation determines which quadric surfaces a
 given line intersects.  The discriminant of the
 quadratic~$p(t)=Q(l(t))$ is computed at the precision of the input
-line.  The sign of the discriminant determins whether the intersection
-is to be considered for sorting later.  This does not guarantee
-correctness in cases where the discriminant is close to zero, but this
-is okay because we're only guaranteeing to sort intersections
+line.  The sign of the discriminant determines whether the intersection
+is to be considered for sorting later.  
+This does not guarantee
+correctness\Jack{This is the wrong way to say this, because you haven't stated the guarantee.} in cases where the discriminant is close to zero, but this
+is okay because we are guaranteeing to sort intersections
 correctly, not detect them.  If the intersection exists, the second
 step is to compute the roots at machine precision.  These roots are
 needed to determine if the order of a pair of intersections is
@@ -294,9 +298,11 @@ the increased precision approximation method are reported to give an
 idea of how frequently disagreements occur.
 
 \subsection{Test Scenes}
+\Jack{You make this too complicated.  We made a choice.  State the choice first, then the advantages of the choice.  E.g., Our test scenes are composed of ellipsoids, because then every line intersects an ellipsoid in zero or two points, giving a good quadratic.  
+On the other hand, you don't say how quadrics are represented -- how many bits?  Do you use exact inputs or not? Or do you just start with the quadratic?  How many bits for coefficients?  What is the exponent range?  Are the examples that fail well scaled?}
 Since we implemented the methods in such a way that they implicitly
 expect a quadratic polynomial, we have a limitation on the types of
-quadric surfaces allowed in the test scenes.  Any scene which is used
+quadric surfaces allowed in the test scenes.  Any scene that is used
 to evaluate the speed of the methods in our test must ensure a line
 will either intersect a surface twice, intersect it once with a
 multiplicity of two, or not intersect it at all.  This is guaranteed
@@ -306,6 +312,7 @@ prevent this issue from occurring, we do not include these types of
 quadric surfaces in our test scenes.  We also do not include any
 linear planes in our scenes.
 
+\Jack{I need enough detail that I can replicate your experiment.}
 Two sets of scenes of quadric surfaces were created.  The first set
 consisted of a single scene of 1331 Packed Spheres.  This scene
 consists of spheres packed in a hexagonal close packing lattice.  This
@@ -314,16 +321,16 @@ result in ambiguous intersection orders.  The spheres each have a
 radius of slightly less than~$0.05$ units, and are spaced about the
 same distance from each other.  The initial sphere is centered at the
 origin, and one of the axes of the lattice is aligned with the $y$
-axis of the coordinate frame.
+axis of the coordinate frame. 
 
 The second set of quadric surface scenes consisted of~$k=100i$ Nested
 Spheres, with $i\in[1, 10]$.  The first sphere is centered
-at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$r_b0=0.5$
+at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$R_0=0.5$
 units.  The radius of successive spheres is decreased linearly so that
-the final sphere's radius is $r_k=2^{-16}$ units.  Thus,
-$r_i=r_{i-1}-(r_0-r_k)/k$.  The x position of successive spheres is
+the final sphere's radius is $R_k=2^{-16}$ units.  Thus,
+$R_i=r_{i-1}-(R_0-r_k)/k$.  The x position of successive spheres is
 increased linearly to fix the minimum distance at~$\epsilon=2^{-19}$
-units. Thus, $x_i=x_{i-1}+(r_0-r_k)/k-\epsilon$. This scene and the
+units. Thus, $x_i=x_{i-1}+(R_0-R_k)/k-\epsilon$. This scene and the
 scene of Packed Spheres are shown in Figure \ref{fig:testScenes}.
 
 \begin{figure}
@@ -353,7 +360,7 @@ the time to be linearly related to the number of quadrics in the
 scene, as the cached values are only computed once for each quadric,
 and are likely to significantly affect the time a comparison takes.
 
-\subsection{Hardware}
+\subsection{Hardware}\Jack{Part of setup}
 Three computers were used to test the implementations.  The first
 computer has a Core i3 M370 processor with 2 cores and a 3 MB cache.
 This processor does provide not a hardware implementation of FMA.
