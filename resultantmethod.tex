@@ -261,27 +261,39 @@ a comparison.
 \subsection{Evaluation Methods}
 The approximate comparison, increased precision approximate
 comparison, and resultant methods were implemented in a C++ program
-for evaluation.  MPFR was used to implement the increased precision
-when required.  This program takes a scene of quadric surfaces and
-generates random lines which are then intersected with the surfaces.
+which computed the line-quadric intersection order of 100k random
+lines with a scene of quadric surfaces.  MPFR was used to implement
+the increased precision when required.
 
-To ensure the results from the methods were consistent, the ordered
-lists of roots from the resultant and approximate comparison methods
-were compared against the ordered list from the increased precision
-approximate method.  This comparison verifies that each quadric was in
-the correct position and that the approximate values of the roots were
-the same.  This may fail if a line simultaneously intersects two
-quadrics, so the scenes of surfaces are designed without
+The first step of the evaluation determines which quadric surfaces a
+given line intersects.  The discriminant of the
+quadratic~$p(t)=Q(l(t))$ is computed at the precision of the input
+line.  The sign of the discriminant determins whether the intersection
+is to be considered for sorting later.  This does not guarantee
+correctness in cases where the discriminant is close to zero, but this
+is okay because we're only guaranteeing to sort intersections
+correctly, not detect them.  If the intersection exists, the second
+step is to compute the roots at machine precision.  These roots are
+needed to determine if the order of a pair of intersections is
+ambiguous or not.  Finally, the stl sort algorithm is used to sort the
 intersections.
 
-Once the line was generated, the intersections and their order were
-computed along with some statistics.  These statistics were the amount
-of time the sorting process took, the number of comparisons made at
-higher precision, and whether the results of the two algorithms
-approximately matched.  The C++ STL sort function was used to sort the
-computed list of intersections, and the POSIX clock\_gettime function
-was used for timing.
+The comparison function used for sorting depends on the method being
+evaluated.  For the basic approximation, the comparison just returns
+the difference of the previously computed roots.  For the increased
+precision approximation and the resultant method, the difference of
+the roots is compared against a threshold.  If the difference is
+smaller than the threshold, the more accurate method provided is used
+to determine the order, and an appropriate value is returned.
 
+These steps are timed for each of the 100k random lines.  The set of
+intersections from the resultant and basic approximation methods are
+then compared to the set from the increased precision approximation
+method.  The number of lines that have a difference in the order with
+the increased precision approximation method are reported to give an
+idea of how frequently disagreements occur.
+
+\subsection{Test Scenes}
 Since we implemented the methods in such a way that they implicitly
 expect a quadratic polynomial, we have a limitation on the types of
 quadric surfaces allowed in the test scenes.  Any scene which is used
@@ -294,24 +306,33 @@ prevent this issue from occurring, we do not include these types of
 quadric surfaces in our test scenes.  We also do not include any
 linear planes in our scenes.
 
-\subsection{Test Scenes}
-To compare the methods, several scenes of quadric surfaces were
-created.  These scenes, shown in figure \ref{fig:testScenes}, were
-composed of surfaces which were mostly constrained within the unit
-cube centered at~$(0.5, 0.5, 0.5)$.  To actually perform the tests,
-10000 random lines were generated.  These lines were generated with
-intercepts positioned within the unit cube to make close intersections
-more likely.
+Two sets of scenes of quadric surfaces were created.  The first set
+consisted of a single scene of 1331 Packed Spheres.  This scene
+consists of spheres packed in a hexagonal close packing lattice.  This
+ensures that the spheres each have 12 neighboring spheres which may
+result in ambiguous intersection orders.  The spheres each have a
+radius of slightly less than~$0.05$ units, and are spaced about the
+same distance from each other.  The initial sphere is centered at the
+origin, and one of the axes of the lattice is aligned with the $y$
+axis of the coordinate frame.
+
+The second set of quadric surface scenes consisted of~$k=100i$ Nested
+Spheres, with $i\in[1, 10]$.  The first sphere is centered
+at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$r_b0=0.5$
+units.  The radius of successive spheres is decreased linearly so that
+the final sphere's radius is $r_k=2^{-16}$ units.  Thus,
+$r_i=r_{i-1}-(r_0-r_k)/k$.  The x position of successive spheres is
+increased linearly to fix the minimum distance at~$\epsilon=2^{-19}$
+units. Thus, $x_i=x_{i-1}+(r_0-r_k)/k-\epsilon$. This scene and the
+scene of Packed Spheres are shown in Figure \ref{fig:testScenes}.
 
 \begin{figure}
-  %\includegraphics[width=0.5\textwidth]{imgs/cylinder_model_planeless.png}
-  %\vspace{1mm}
   \includegraphics[width=0.5\textwidth]{imgs/packedSpheres.png}
   
   \vspace{5mm}
+  
   \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle.png}
   \caption{Test Scenes, from Top to Bottom:
-    %{\bf Test Cylinders};
     {\bf Packed Spheres};
     {\bf Shifted Ellipsoids}}
   \label{fig:testScenes}
@@ -413,12 +434,12 @@ Figure \ref{fig:linefit} shows a plot of the results from one of the
 tests.  It appears to confirm our expectation that the time required
 is linearly coorelated with the number of precision increases.
 
-\begin{table}[p]
-  \captionsetup{oneside, margin={1cm,0cm}, width=\textwidth}
+\begin{table*}
+%  \captionsetup{oneside, margin={1cm,0cm}, width=\textwidth}
   \caption{Timing Results of the Approximate Comparison and Resultant Comparison}
   \label{tab:times}
   \input{comparison_table.tex}
-\end{table}
+\end{table*}
 
 \section{Conclusion}
 In this paper we showed how the resultant method can improve the
