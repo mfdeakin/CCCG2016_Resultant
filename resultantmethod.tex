@@ -249,124 +249,128 @@ initialization cost of 7 FLOPs per intersection.
 
 \section{Experimental Evaluation}
 We experimentaly evaluated  the resultant method, and the  approximate method, with both machine
-precision and extended precision against
-test cases that aimed to increase the chance of incorrect orders from
-approximate comparisons.  We evaluate how frequently the exact and
-approximate results agree, and how long each method takes to perform a
-comparison. Repeated Squaring is dominated by the other methods so is not tested.
+precision and extended precision.  Repeated Squaring is dominated by the other methods so was not tested.
+
+We created two types of test scenes that had touching surfaces so that
+random lines migh have some chance (albeit small) to give incorrect
+orders under approximation, and count the number of disagreements.  We
+evaluated time per comparison for each method on computers with
+different processors.  Finally, by varying tne number of surfaces in
+the second type of scene, we could use linear regression to determine
+the contribution to running time from per quadric and per comparison
+terms.
+ 
 
 \subsection{Experimental Setup}
-All methods were implemented in C++, and were tested by 
-computing the line-quadric intersection orders along 100k random lines (created from points with single precision coordinates) in scenes of quadric surfaces, whose creation is described below.
-MPFR\cite{mpfr} was used for the increased precision approximate
-comparison and the resultant methods to support arbitrary 
-precision.  The basic approximate comparison method matched the single
-precision of the input.
+All methods were implemented in C++, and were tested by computing the
+line-quadric intersection orders along 100k lines, created from pairs
+of uniformly random points with single precision coordinates, in
+scenes of quadric surfaces, whose creation is described in the next
+subsection.  Machine precision tests were performed in IEEE 754, with
+quadratic coefficients and discriminants stored as floats, even though
+automatic promotion performed intermediate computations as doubles.
+MPFR\cite{mpfr} was used to support arbitrary precision in both the
+approximate comparison and the resultant methods.
 
-We measured the amount of time it took to sort the line-quadric
-intersections with the different comparison methods.  We also compared
-the results from the basic approximate and resultant comparison
-methods with the results from the increased precision approximate
-comparison method to verify the methods produced the same results.
+The first step of the evaluation for a line $\ell$ and quadric $Q$ was
+to determined if there was a real intersection by evaluating the
+discriminant of the quadratic~$p(t)=Q(\ell(t))$.  This evaluatio wss
+done in machine precision, so there is a small chance that near
+tangent intersections may have been missed due to numeric error in
+calculating the discriminant. (In our application, missing near
+tangent intersctions was allowed, but getting orders wrong had been
+known to trap particles into repeatedly trying to cross the same pair
+of surfaces, which tends to worry a physicist.)
 
-Three computers were used to test the methods.  The first computer has
-a Core i3 M370 processor with 2 cores and a 3 MB cache.  This
-processor does provide not a hardware implementation of FMA.  This
-computer has 4 GB of DDR3 memory clocked at 1 GHz.  It is running an
-up to date installation of Arch Linux with version 4.4 of the kernel.
-GCC 5.3 was used to compile the code for these tests.  For these
-tests, the performance manager was set to keep the CPU clock at 2.4
-GHz, and the process was run with a nice value of -20.
-
-The second computer has two Xeon E5-2643 processors with 4 cores and
-10 MB caches.  This processor does not provide a hardware
-implementation of FMA.  This computer has 32 GB of DDR3 memory running
-with a 1.6 GHz clock.  It is running Ubuntu 14.04 with version 3.13 of
-the kernel, and uses GCC 5.2 to compile the code for these tests.
-These tests were run with the default performance manager with a
-maximum CPU clock of 3.3 GHz, along with a nice value of -20.
-
-The third computer has a Core 2 Duo E6550 processor with two cores and
-a 4 MB cache.  This processor does not provide a hardware
-implementation of FMA.  This computer has 8 GB of DDR2 memory clocked
-at 667 MHz.  It is running an up to date installation of Gentoo Linux
-with version 4.0 of the kernel.  GCC 5.3 was used to compile the code
-for these tests.  For these tests, the performance manager was set to
-keep the CPU clock at 2.3 GHz, with a nice value of -20.
-
-To get a better estimate of the relative performance of the two
-computers, the Geekbench benchmark was employed to estimate the
-processor speeds.  The Ubuntu computer had a single core floating
-point score of 2730.  The Arch computer had a single core floating
-point score of 1702.  The Gentoo computer had a single core floating
-point score of 1408.  On average, the Ubuntu computer was capable of
-about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
-FLOPS than the Gentoo computer.
-
-The first step of the evaluation determines which quadric surfaces a
-given line intersects.  The discriminant of the
-quadratic~$p(t)=Q(l(t))$ is computed at the precision of the input
-line.  The sign of the discriminant determines whether the
-intersection is to be considered for sorting later.  This does not
-guarantee that the sign of the discriminant will be computed correctly
-in cases where the discriminant is close to zero, but this is okay
-because we are guaranteeing to sort intersections correctly, not to
-detect them.  If the intersection exists, the second step is to
+If the intersections are deemed to exist, the second step is to
 compute the roots at machine precision.  These roots are needed to
 determine if the order of a pair of intersections is ambiguous or not.
 Finally, the stl sort algorithm is used to sort the intersections.
 
-The comparison function used for sorting depends on the method being
-evaluated.  For the basic approximation, the comparison just returns
-the difference of the previously computed roots.  For the increased
+The comparison function used for sorting came from the  method being
+evaluated.  The machine precision approximate comparison just returns
+the difference of the previously computed roots.  In the increased
 precision approximation and the resultant method, the difference of
-the roots is compared against a threshold.  If the difference is
-smaller than the threshold, the more accurate method provided is used
+the roots is compared against a threshold.  If the difference was
+smaller than a threshold\Jack{can you say what it is?  also, how often the more accurate method was used?}, the more accurate method provided is used
 to determine the order, and an appropriate value is returned.
 
-\subsection{Test Scenes}
-The test scenes consisted of multiple quadric surfaces stored as
-IEEE754 single precision floating point numbers.  The quadric surfaces
-used were chosen so that any line which intersects them will intersect
-them twice, possibly with a repeated root.  This is because we have
-only implemented the sorting method for the hard problem of sorting
-the roots of two quadratics, as correctly sorting the roots of
-anything less is easy.  The quadric surfaces were all mostly
-constrained to the unit cube with one corner at the origin and the
-opposite one at $(1.0, 1.0, 1.0)$.
 
-The test scenes consisted of a scene of 1331 Packed Spheres and a set
-of scenes of Nested Spheres.  The scene of Packed Spheres consists of
-spheres packed in a hexagonal close packing lattice.  This ensures
+\Jack{Timing measurments were taken by  ?? (Say what function you used for timing, because some clocks have pretty coarse granularity.}
+
+We ran tests on three computers with different speeds and operating systems; we name them by their operating systems.
+
+\paragraph{Ubuntu} had  two Xeon E5-2643 processors \Jack{each with 4 OR each with 2} cores and 
+10 MB caches, and a total of 32 GB of DDR3 memory running
+clocked at 1.6 GHz.  It  ran Ubuntu 14.04, kernel version 3.13, and GCC 5.2 was used to compile the code.
+The tests were run with the default performance manager with a
+maximum CPU clock of 3.3 GHz, with nice value of $-20$.
+
+\paragraph{Arch} was 
+a Core i3 M370 processor with 2 cores, a 3 MB cache, and 4 GB of DDR3
+memory clocked at 1 GHz.  It ran an up-to-date installation of Arch Linux, kernel version 4.4, and
+GCC 5.3 was used to compile the code.  For the tests, the performance
+manager was set to keep the CPU clock at 2.4 GHz, and the process was
+run with a nice value of $-20$.
+
+\paragraph{Gentoo} was a Core 2 Duo E6550 processor with two cores,
+a 4 MB cache, and 8 GB of DDR2 memory clocked at 667 MHz.  It ran an
+up-to-date installation of Gentoo Linux, kernel version 4.0 and GCC
+5.3 was used to compile the code.  For the tests, the performance
+manager was set to keep the CPU clock at 2.3 GHz, with a nice value of
+$-20$.
+
+A Geekbench benchmark was employed to estimate the floating point
+processor speeds, with Ubuntu scoring 2730, Arch 1702, and Gentoo
+1408. Thus, on average, the Ubuntu was capable of about 1.6 times more
+FLOPS than the Arch computer, and 1.9 times more FLOPS than the Gentoo
+computer.
+
+
+\subsection{Test Scenes}
+We created two types of test scenes: a single scene of Packed Spheres
+and and a set of scenes of Nested Spheres.  The test scenes consisted
+of quadric surfaces stored as IEEE754 single precision floating point
+numbers.  We preferred spheres and ellipsoids, since any intersecting
+line would intersect twice, possibly with a repeated root.  Sorting
+isolated single roots is easier, since, for example, the intersection
+with a plane requires less precision. The quadric surfaces were constructed 
+from the unit cube that has one corner at the origin and the
+opposite corner at $(1.0, 1.0, 1.0)$.
+
+The one scene of Packed Spheres consisted of 1331
+spheres in a hexagonal close packing lattice shown in Fig.~\ref{fig:testScenes}.  This ensures
 that the spheres each have 12 intersecting or nearly intersecting
 neighbors.  The spheres each have a radius of about~$0.05$ units, and
 are spaced about~$0.05$ units from each other.  The initial sphere is
 centered at the origin, and one of the axes of the lattice is aligned
 with the $y$ axis of the coordinate frame.  The coefficients of the
 spheres are scaled so that the coefficients of the squared terms were
-all $1.0$. This causes the exponent range for the non-zero
+all $1.0$. This caused the exponent range for the non-zero
 coefficients of the spheres to be between~$-8$ and~$1$.
 
-The second set of quadric surface scenes consisted of~$n\in\{10, 100i
-| 1\leq i \leq 10\}$ Nested Spheres.  The first sphere is centered
+We used eleven scenes of Nested Spheres. One, shown in
+Fig.~\ref{fig:testScenes}, had $n=10$ spheres, the others had
+$n=100i$, for $1\leq i \leq 10\}$.  The first sphere was centered
 at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$R_0=0.5$ units.
-The radius of successive spheres is linearly decreased so that the
-final sphere's radius is $R_n=2^{-16}$ units.  Thus,
-$R_i=r_{i-1}-(R_0-r_n)/n$.  The x position of successive spheres is
+The radius of successive spheres decreased linearly so that the final
+sphere's radius was $R_n=2^{-16}$ units.  Thus,
+$R_i=R_{i-1}-(R_0-R_n)/n$.  The $x$ position of successive spheres
 increased linearly to fix the minimum distance at~$\epsilon=2^{-19}$
 units. Thus, $x_i=x_{i-1}+(R_0-R_n)/n-\epsilon$.  The exponent range
 for the non-zero coefficients of the spheres was chosen to be
-between~$-1$ and~$0$.  This scene and the scene of Packed Spheres are
-shown in Figure \ref{fig:testScenes}.
+between~$-1$ and~$0$.
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{imgs/packedSpheres.png}
   \vspace{5mm}
   
   \includegraphics[width=0.5\textwidth]{imgs/hardEllipsoidsSingle.png}
-  \caption{Test Scenes, from Top to Bottom:
-    {\bf 1331 Packed Spheres};
-    {\bf 10 Nested Spheres}}
+  \caption{Test Scenes of 1331 Packed Spheres and 10 Nested Spheres,
+    which is smallest of a family of eleven.  Random lines in Packed
+    Spheres have some chance of being near sphere contacts.  Random
+    lines in Nested Spheres are unlikely to, unless they are biased to
+    pass by the near tangency.}
   \label{fig:testScenes}
 \end{figure}
 
