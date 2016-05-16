@@ -47,7 +47,7 @@
   segment through a CAD model with quadric surfaces, this paper
   considers the arithmetic precision required to compute the order of
   intersection points of two quadrics along the line segment. When the
-  orders of all but one pair of points are known, we show that a
+  orders of all but one pair of intersections are known, we show that a
   resultant can resolve the order of the remaining paiir using only
   half the precision that may be required to eliminate radicals by
   repeated squaring. We compare the time and accuracy of our technique
@@ -91,11 +91,12 @@ of Bettis Labs: rather than tracking a particle through quadric
 surfaces in a CAD model, would it be more robust to compute the
 intervals of intersections with a segement?  We compare three methods
 to order line-quadric intersections.  Our methods, particularly the
-third, are specifically developed and tested for the case where only
+third, are  developed and tested for the case where only
 one pair of roots has a difference that is potentially overwhelmed by
 the rounding errors in the computation. We comment at the end how to
 handle pairs of quadric surfaces that have more than one pair of
 ambiguous roots.
+
 
 \section{Methods}
 This section outlines three methods---Approximate Comparison, Repeated
@@ -117,12 +118,19 @@ as~$\sign(r_1^\pm-r_2^\pm)$.
 
 The rounding of floating point arithmetic means that even with
 representable input, the correct order is not guaranteed unless we
-establish a gap theorem~\cite{Canny,EMT} and compute with sufficient
+establish a gap or separation theorem (which are also established
+using resultants~\cite{brownawell2009lower,emiris2010dmm}) and compute with sufficient
 precision.  Without a guarantee, this method requires very little
 computation.  Computing both roots takes $12$ FLOPs, with one more to
 compute the sign of the difference.  Moreover, the roots can be reused
-in a scene of many quadrics.  In the next section, we experimentally
-apply this method using machine precision and extended precision.
+in a scene of many quadrics.
+
+We also use extended precision, where the multiplications and addition
+in the discriminants are calculated with $6w$ bits, square root and
+addition at $12w$ bits, and divisions at $24w$ bits.  To actually
+perform the comparison, one final subtraction is required at 24 times
+the initial precision -- 1 FLOP, with an initialization cost of 10
+FLOPs per quadric intersecting the line.
 
 \subsection{Repeated Squaring}
 The repeated squaring method computes $\sign(r_1^\pm-r_2^\pm)$ by
@@ -199,31 +207,20 @@ The two expressions for the resultant provide us with another method
 of computing the sign of one of the differences of the two roots.
 Under our assumption that we know the order of all pairs or roots
 except, say, $a_1$ and $b_1$, we can compute $\sign(a_1-b_1)$ from the
-determinant and known signs, as in Equation \ref{eq:signroot}.  The
+determinant and known signs, as in Equation \ref{eq:signroot} at the top of the next page.  The
 signs need not be multiplied; we simply count the negatives.  With
 quadratics, $m=n=2$, so the signs of the leading ~$p_2^2$ and~$q_2^2$
 will be positive and can be ignored.
 
-The determinant can be computed more cheaply than correctly computing
-the sign of the differences of roots of the polynomials.  Computing
-the roots of the polynomials requires seven additions and
-multiplications, plus the expensive square root and two divisions.
-(For reference, it has been shown that a square root costs
-approximately the same number of operations as~$\frac{3}{2}$ additions
-at the same precision~\cite{karatsuba}.)  To compute the roots, two
-multiplications and an addition are computed at 6 times the precision
-of the input.  The square root and two additions are computed at 12
-times the initial precision.  The two divisions are computed at 24
-times the initial precision.  To actually perform the comparison, one
-final subtraction is required at 24 times the initial precision. This
-means each comparison requires only 1 FLOP, with an initialization
-cost of 10 FLOPs per intersection.
+The determinant can be computed with half the precision and fewer
+floating point operations than repeated squaring to correctly compute
+the sign of the differences of roots of the polynomials.
 
-Computing a general $4\times 4$ determinant costs about 120
-multiplications.  Computing the determinant of the Sylvester matrix
-itself would naively take~$35$ FLOPs for each comparison.  We can
-write the determinant in terms of the discriminants and other
-precomputed $2\time 2$ minors from each polynomial, as in Equation
+Computing a general $4\times 4$ determinant would cost about 120
+multiplications, and computing the determinant of the Sylvester matrix
+itself would naively take~$35$ FLOPs for each comparison.  We do better by writing
+the determinant in terms of the discriminants and other
+precomputed $2\times 2$ minors from each polynomial, as in Equation
 \ref{eq:sylvpoly}.  This brings us to 11 FLOPs per comparison, with an
 initialization cost of 7 FLOPs per intersection.
 
@@ -251,20 +248,18 @@ initialization cost of 7 FLOPs per intersection.
 \end{figure*}
 
 \section{Experimental Evaluation}
-We experimentaly evaluated the approximate method, with both machine
-precision and extended precision, and the resultant method against
+We experimentaly evaluated  the resultant method, and the  approximate method, with both machine
+precision and extended precision against
 test cases that aimed to increase the chance of incorrect orders from
 approximate comparisons.  We evaluate how frequently the exact and
 approximate results agree, and how long each method takes to perform a
-comparison.
+comparison. Repeated Squaring is dominated by the other methods so is not tested.
 
 \subsection{Experimental Setup}
-The approximate comparison, increased precision approximate
-comparison, and resultant methods were implemented in a C++ program
-that computed the line-quadric intersection order of 100k single
-precision random lines with a scene of quadric surfaces.
-MPFR\cite{mpfr} was used to for the increased precision approximate
-comparison and the resultant methods to provide arbitrary increases in
+All methods were implemented in C++, and were tested by 
+computing the line-quadric intersection orders along 100k random lines (created from points with single precision coordinates) in scenes of quadric surfaces, whose creation is described below.
+MPFR\cite{mpfr} was used for the increased precision approximate
+comparison and the resultant methods to support arbitrary 
 precision.  The basic approximate comparison method matched the single
 precision of the input.
 
