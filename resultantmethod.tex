@@ -119,10 +119,6 @@ Moreover, the roots can be reused in a scene of many quadrics.
 In the next section, we experimentally apply this method using machine precision and extended precision.
 
 \subsection{Repeated Squaring}
-\Michael{I'm worried my notation is confusing here. The $\pm$ and
-  $\mp$ are not consistent in a single equation, just as we perform
-  the manipulations}\Jack{That didn't bother me.}
-
 The repeated squaring method computes $\sign(r_1^\pm-r_2^\pm)$ by algebraic
 manipulations to eliminate division and square root
 operations, leaving multiplications and additions whose precision requirements can be bounded. 
@@ -151,13 +147,10 @@ squares, and products can precomputed, which reduces the number of
 FLOPs by 14.  This brings us to 25 FLOPs per comparison, with an
 initialization cost of 14 FLOPs per quadric.
 
-\Michael{This isn't what I wanted to convey, as this method will work
-  regardless of the sides they're on...}\Jack{To find out which of $r_2^\pm$ is close to $r_1$,  compare $r_1$ with $-b^2/a^2$. You learn the sign of the difference with the other root as well.  E.g., if $r_1>-b^2/a_2$ then we know $r_1>r_2^-$ and want to compare $r_1?r_2^+$.  Do I need to spell that out? What method do you refer to?}
- 
-
-Note that this method uses our assumption that we know the sign of
-$\sign(r_1^\pm-r_2^\mp)$ while computing $\sign(r_1^\pm-r_2^\pm)$, but
-we can learn this from a lower precision test against $-b^2/a^2$, since $r_2^- \le -b^2/a^2 \le r_2^+$.
+Note that this method uses our assumption that we know
+$\sign(r_1^\pm-r_2^\mp)$ when computing $\sign(r_1^\pm-r_2^\pm)$, but
+we can learn this from a lower precision test against $-b_2/a_2$,
+since $r_2^- \le -b_2/a_2 \le r_2^+$.
 
 \subsection{Resultant}
 The resultant method computes the order of two intersections from the
@@ -262,25 +255,65 @@ a comparison.
 \subsection{Experimental Setup}
 The approximate comparison, increased precision approximate
 comparison, and resultant methods were implemented in a C++ program
-that computed the line-quadric intersection order of 100k random
-lines with a scene of quadric surfaces.  MPFR\Jack{cite or url footnote} was used to implement
-the increased precision when required.
+that computed the line-quadric intersection order of 100k single
+precision random lines with a scene of quadric surfaces.
+MPFR\cite{mpfr} was used to for the increased precision approximate
+comparison and the resultant methods to provide arbitrary increases in
+precision.  The basic approximate comparison method matched the single
+precision of the input.
 
-\Jack{Describe the data first.}
+We measured the amount of time it took to sort the line-quadric
+intersections with the different comparison methods.  We also compared
+the results from the basic approximate and resultant comparison
+methods with the results from the increased precision approximate
+comparison method to verify the methods produced the same results.
+
+Three computers were used to test the methods.  The first computer has
+a Core i3 M370 processor with 2 cores and a 3 MB cache.  This
+processor does provide not a hardware implementation of FMA.  This
+computer has 4 GB of DDR3 memory clocked at 1 GHz.  It is running an
+up to date installation of Arch Linux with version 4.4 of the kernel.
+GCC 5.3 was used to compile the code for these tests.  For these
+tests, the performance manager was set to keep the CPU clock at 2.4
+GHz, and the process was run with a nice value of -20.
+
+The second computer has two Xeon E5-2643 processors with 4 cores and
+10 MB caches.  This processor does not provide a hardware
+implementation of FMA.  This computer has 32 GB of DDR3 memory running
+with a 1.6 GHz clock.  It is running Ubuntu 14.04 with version 3.13 of
+the kernel, and uses GCC 5.2 to compile the code for these tests.
+These tests were run with the default performance manager with a
+maximum CPU clock of 3.3 GHz, along with a nice value of -20.
+
+The third computer has a Core 2 Duo E6550 processor with two cores and
+a 4 MB cache.  This processor does not provide a hardware
+implementation of FMA.  This computer has 8 GB of DDR2 memory clocked
+at 667 MHz.  It is running an up to date installation of Gentoo Linux
+with version 4.0 of the kernel.  GCC 5.3 was used to compile the code
+for these tests.  For these tests, the performance manager was set to
+keep the CPU clock at 2.3 GHz, with a nice value of -20.
+
+To get a better estimate of the relative performance of the two
+computers, the Geekbench benchmark was employed to estimate the
+processor speeds.  The Ubuntu computer had a single core floating
+point score of 2730.  The Arch computer had a single core floating
+point score of 1702.  The Gentoo computer had a single core floating
+point score of 1408.  On average, the Ubuntu computer was capable of
+about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
+FLOPS than the Gentoo computer.
 
 The first step of the evaluation determines which quadric surfaces a
 given line intersects.  The discriminant of the
 quadratic~$p(t)=Q(l(t))$ is computed at the precision of the input
-line.  The sign of the discriminant determines whether the intersection
-is to be considered for sorting later.  
-This does not guarantee
-correctness\Jack{This is the wrong way to say this, because you haven't stated the guarantee.} in cases where the discriminant is close to zero, but this
-is okay because we are guaranteeing to sort intersections
-correctly, not detect them.  If the intersection exists, the second
-step is to compute the roots at machine precision.  These roots are
-needed to determine if the order of a pair of intersections is
-ambiguous or not.  Finally, the stl sort algorithm is used to sort the
-intersections.
+line.  The sign of the discriminant determines whether the
+intersection is to be considered for sorting later.  This does not
+guarantee that the sign of the discriminant will be computed correctly
+in cases where the discriminant is close to zero, but this is okay
+because we are guaranteeing to sort intersections correctly, not to
+detect them.  If the intersection exists, the second step is to
+compute the roots at machine precision.  These roots are needed to
+determine if the order of a pair of intersections is ambiguous or not.
+Finally, the stl sort algorithm is used to sort the intersections.
 
 The comparison function used for sorting depends on the method being
 evaluated.  For the basic approximation, the comparison just returns
@@ -290,29 +323,25 @@ the roots is compared against a threshold.  If the difference is
 smaller than the threshold, the more accurate method provided is used
 to determine the order, and an appropriate value is returned.
 
-These steps are timed for each of the 100k random lines.  The set of
-intersections from the resultant and basic approximation methods are
-then compared to the set from the increased precision approximation
-method.  The number of lines that have a difference in the order with
-the increased precision approximation method are reported to give an
-idea of how frequently disagreements occur.
-
 \subsection{Test Scenes}
-\Jack{You make this too complicated.  We made a choice.  State the choice first, then the advantages of the choice.  E.g., Our test scenes are composed of ellipsoids, because then every line intersects an ellipsoid in zero or two points, giving a good quadratic.  
-On the other hand, you don't say how quadrics are represented -- how many bits?  Do you use exact inputs or not? Or do you just start with the quadratic?  How many bits for coefficients?  What is the exponent range?  Are the examples that fail well scaled?}
-Since we implemented the methods in such a way that they implicitly
-expect a quadratic polynomial, we have a limitation on the types of
-quadric surfaces allowed in the test scenes.  Any scene that is used
-to evaluate the speed of the methods in our test must ensure a line
-will either intersect a surface twice, intersect it once with a
-multiplicity of two, or not intersect it at all.  This is guaranteed
-for most surfaces, but can occur on rare occasion with parabolic
-cylinders, hyperbolic paraboloids, and elliptic paraboloids.  To
-prevent this issue from occurring, we do not include these types of
-quadric surfaces in our test scenes.  We also do not include any
-linear planes in our scenes.
+\Jack{You make this
+  too complicated.  We made a choice.  State the choice first, then
+  the advantages of the choice.  E.g., Our test scenes are composed of
+  ellipsoids, because then every line intersects an ellipsoid in zero
+  or two points, giving a good quadratic.  On the other hand, you
+  don't say how quadrics are represented -- how many bits?  Do you use
+  exact inputs or not? Or do you just start with the quadratic?  How
+  many bits for coefficients?  What is the exponent range?  Are the
+  examples that fail well scaled?}
 
-\Jack{I need enough detail that I can replicate your experiment.}
+The test scenes consisted of multiple quadric surfaces stored as
+IEEE754 single precision floating point numbers.  The quadric surfaces
+used were chosen so that any line which intersects them will intersect
+them twice.  This is because we have only implemented the sorting
+method for the harder problem of sorting the roots of quadratics.  The
+quadric surfaces were all mostly constrained to the unit cube with one
+corner at the origin and another at $(1.0, 1.0, 1.0)$.  
+
 Two sets of scenes of quadric surfaces were created.  The first set
 consisted of a single scene of 1331 Packed Spheres.  This scene
 consists of spheres packed in a hexagonal close packing lattice.  This
@@ -321,17 +350,20 @@ result in ambiguous intersection orders.  The spheres each have a
 radius of slightly less than~$0.05$ units, and are spaced about the
 same distance from each other.  The initial sphere is centered at the
 origin, and one of the axes of the lattice is aligned with the $y$
-axis of the coordinate frame. 
+axis of the coordinate frame.  This means that the exponents of the
+coefficients of the quadric surfaces will be between~$-8$ and~$0$.
 
-The second set of quadric surface scenes consisted of~$k=100i$ Nested
-Spheres, with $i\in[1, 10]$.  The first sphere is centered
-at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$R_0=0.5$
-units.  The radius of successive spheres is decreased linearly so that
-the final sphere's radius is $R_k=2^{-16}$ units.  Thus,
+The second set of quadric surface scenes consisted of~$k\in\{10, 100i
+| 1\leq i \leq 10\}$ Nested Spheres.  The first sphere is centered
+at~$x_0=0.5, y_0=0.5, z_0=0.5$ units with a radius of~$R_0=0.5$ units.
+The radius of successive spheres is decreased linearly so that the
+final sphere's radius is $R_k=2^{-16}$ units.  Thus,
 $R_i=r_{i-1}-(R_0-r_k)/k$.  The x position of successive spheres is
 increased linearly to fix the minimum distance at~$\epsilon=2^{-19}$
-units. Thus, $x_i=x_{i-1}+(R_0-R_k)/k-\epsilon$. This scene and the
-scene of Packed Spheres are shown in Figure \ref{fig:testScenes}.
+units. Thus, $x_i=x_{i-1}+(R_0-R_k)/k-\epsilon$.  The exponent of the
+coefficients of the quadric surfaces will be between~$$ and~$$.  This
+scene and the scene of Packed Spheres are shown in Figure
+\ref{fig:testScenes}.
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{imgs/packedSpheres.png}
@@ -359,41 +391,6 @@ is taken up by performing these comparisons.  It also makes sense for
 the time to be linearly related to the number of quadrics in the
 scene, as the cached values are only computed once for each quadric,
 and are likely to significantly affect the time a comparison takes.
-
-\subsection{Hardware}\Jack{Part of setup}
-Three computers were used to test the implementations.  The first
-computer has a Core i3 M370 processor with 2 cores and a 3 MB cache.
-This processor does provide not a hardware implementation of FMA.
-This computer has 4 GB of DDR3 memory clocked at 1 GHz.  It is running
-an up to date installation of Arch Linux with version 4.4 of the
-kernel.  GCC 5.3 was used to compile the code for these tests.  For
-these tests, the performance manager was set to keep the CPU clock at
-2.4 GHz, and the process was run with a nice value of -20.
-
-The second computer has two Xeon E5-2643 processors with 4 cores and
-10 MB caches.  This processor does not provide a hardware
-implementation of FMA.  This computer has 32 GB of DDR3 memory running
-with a 1.6 GHz clock.  It is running Ubuntu 14.04 with version 3.13 of
-the kernel, and uses GCC 5.2 to compile the code for these tests.
-These tests were run with the default performance manager with a
-maximum CPU clock of 3.3 GHz, along with a nice value of -20.
-
-The third computer has a Core 2 Duo E6550 processor with two cores and
-a 4 MB cache.  This processor does not provide a hardware
-implementation of FMA.  This computer has 8 GB of DDR2 memory clocked
-at 667 MHz.  It is running an up to date installation of Gentoo Linux
-with version 4.0 of the kernel.  GCC 5.3 was used to compile the code
-for these tests.  For these tests, the performance manager was set to
-keep the CPU clock at 2.3 GHz, with a nice value of -20.
-
-To get a better estimate of the relative performance of the two
-computers, the Geekbench benchmark was employed to estimate the
-processor speeds.  The Ubuntu computer had a single core floating
-point score of 2730.  The Arch computer had a single core floating
-point score of 1702.  The Gentoo computer had a single core floating
-point score of 1408.  On average, the Ubuntu computer was capable of
-about 1.6 times more FLOPS than the Arch computer, and 1.9 times more
-FLOPS than the Gentoo computer.
 
 \section{Experimental Results}
 The results of the experiments are shown in Table \ref{tab:times}.
@@ -431,7 +428,7 @@ which should be considered.
 
 \begin{figure}
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
-  \caption{Number of Comparisons vs. the Evaluation Time (ms); 10000
+  \caption{Number of Comparisons vs. the Evaluation Time (ms); 100000
     tests on the Gentoo machine; {\bf Red: Approximation Method at
       $24\times$ the Input Precision}; {\bf Green: Approximation
       Method at Input Precision}; {\bf Blue: Resultant Method}}
