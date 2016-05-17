@@ -285,6 +285,8 @@ If the intersections are deemed to exist, the second step is to
 compute the roots at machine precision.  These roots are needed to
 determine if the order of a pair of intersections is ambiguous or not.
 Finally, the stl sort algorithm is used to sort the intersections.
+The full process was timed in nanoseconds with the POSIX
+clock\_gettime function.
 
 The comparison function used for sorting came from the method being
 evaluated.  The machine precision approximate comparison just returns
@@ -293,9 +295,8 @@ precision approximation and the resultant method, the difference of
 the roots is compared against a threshold.  If the difference was
 smaller than a threshold of $2^{-15}$, the more accurate method
 provided is used to determine the order, and an appropriate value is
-returned.  This occured infrequently for a random line,
-
-\Jack{Timing measurments were taken by  ?? (Say what function you used for timing, because some clocks have pretty coarse granularity.}
+returned.  This occured infrequently for a random line, and occured on
+average
 
 We ran tests on two computers with different speeds and operating
 systems; we name them by their operating systems.
@@ -430,9 +431,10 @@ tests.  It appears to confirm our expectation that the time required
 is linearly coorelated with the number of precision increases.
 
 \begin{table*}
-  \caption{Timing Results of the Approximate Comparison and Resultant
-    Comparison, 100k lines in the Packed Spheres test, 1100k lines in
-    the set of 11 Nested Spheres tests}
+  % Make this caption much longer!!!
+  \caption{Analysis of the timing of the Approximate Comparison and
+    Resultant Comparison, 100k lines in the Packed Spheres scene,
+    1100k lines in the set of 11 Nested Spheres scenes}
   \label{tab:times}
   \input{comparison_table.tex}
 \end{table*}
