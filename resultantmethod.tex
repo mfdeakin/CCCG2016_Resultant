@@ -319,7 +319,6 @@ A Geekbench benchmark was employed to estimate the floating point
 processor speeds, Arch 1702, and Gentoo 1408. Thus, on average, Arch
 was capable of about 1.2 times more FLOPS than the Gentoo computer.
 
-
 \subsection{Test Scenes}
 We created two types of test scenes: a single scene of Packed Spheres
 and and a set of scenes of Nested Spheres.  The test scenes consisted
@@ -368,14 +367,26 @@ between~$-1$ and~$0$.
 \end{figure}
 
 \subsection{Analysis}
-To analyze the results, we computed the least squares linear fit of
-the timing data.  For the Packed Spheres, we used the number of
-comparisons made as our independent variable, and computed a linear
-coefficient for it along with a constant term.  For the Nested Spheres
-set of scenes, we aggregated the test results for the scenes so we
-could fit the line to two independent variables; the number of
-comparisons made, and the number of quadric surfaces in the scene.
-Fitting the time it takes to make a comparison to a linear
+% Work on this section
+The time that it takes to compute the order of intersections between a
+given line and a scene of quadric surfaces is expected to be linear in
+both the number of accurate comparisons made and the number of quadric
+surfaces.  The number of accurate comparisons is expected to be
+linearly related to the time spent because these comparisons are
+significantly more expensive than regular comparisons.  The number of
+quadrics is expected to be linearly related because each one must be
+checked to verify the line does not intersect it.  This check is done
+in constant time, so the number of checks
+
+To analyze the Packed Spheres timing data, we used least
+squares with the number of comparisons made as our independent
+variable to compute a linear fit to the timing data.
+
+To analyze the set of Nested Spheres scenes, we aggregated the test
+results for the scenes so that we could find the best fitting plane
+with the number of comparisons made and the number of quadric surfaces
+as our independent variables to compute a linear fit to the timing
+data.  Fitting the time it takes to make a comparison to a linear
 relationship makes sense, as the bulk of the sorting time is taken up
 by performing these comparisons.  It also makes sense for the time to
 be linearly related to the number of quadrics in the scene, as the
@@ -383,6 +394,7 @@ cached values are only computed once for each quadric, and are likely
 to significantly affect the time a comparison takes.
 
 \section{Experimental Results}
+% Work on this section
 The results of the experiments are shown in Table \ref{tab:times}.
 Each method took approximately the same amount of time to process each
 quadric, though the resultant method consistently took the longest.
@@ -415,14 +427,17 @@ ms/Quadric term is not measured, that is mainly what the constant term
 consists of.  Thus, we expect, and observe the same results as in the
 ms/Quadric term.  It also means there are probably not any other terms
 which should be considered.
-
+%May 
 \begin{figure}
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
   \caption{Evaluation Time for a Line (ms) vs. the Number of
-    Comparisons; 100k lines sorting on the Gentoo machine; {\bf Green:
-      Approximation Method at Input Precision}; {\bf Red:
+    Comparisons; Sorting the intersections of 100k lines in each of
+    the Nested Spheres test scenes on the Gentoo machine; {\bf
+      Circles: Approximation Method at Input Precision}; {\bf X's:
       Approximation Method at $24\times$ the Input Precision}; {\bf
-      Blue: Resultant Method}}
+      Pluses: Resultant Method}.  The least squares coefficient for
+    the time per quadrics has been subtracted out to better show the
+    actual fit.}
   \label{fig:linefit}
 \end{figure}
 
@@ -433,8 +448,11 @@ is linearly coorelated with the number of precision increases.
 \begin{table*}
   % Make this caption much longer!!!
   \caption{Analysis of the timing of the Approximate Comparison and
-    Resultant Comparison, 100k lines in the Packed Spheres scene,
-    1100k lines in the set of 11 Nested Spheres scenes}
+    Resultant Comparison.  Timing data for 100k lines was analyzed for
+    the Packed Spheres scene to find the best fitting lines
+    coefficients.  Timing data for 100k lines was analyzed for each of
+    the set of 11 Nested Spheres scenes to find the best fitting
+    planes coefficients.}
   \label{tab:times}
   \input{comparison_table.tex}
 \end{table*}
