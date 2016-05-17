@@ -76,7 +76,7 @@ A quadratic is an implicit surface defined by its 10 representable coefficients,
 For more accuracy, we can allow more precision for the linear and
 quadratic coefficients, since we will need $3w$~bits to exactly
 multiply out the quadratic terms, or we can use a representable
-symmetric $3\times 3$ matrix~$M$, a representable vector~$v$, and a
+symmetric $3{\times} 3$ matrix~$M$, a representable vector~$v$, and a
 $3w$-bit constant~$R$ to give a different set of quadrics $\tilde Q(p)
 = (p-v)^TM(p-v) = R$ that is closed under representable translations
 of~$v$. Whichever definition of quadrics is chosen, the parameter
@@ -166,13 +166,6 @@ $\sign(r_1^\pm-r_2^\mp)$ when computing $\sign(r_1^\pm-r_2^\pm)$, but
 we can learn this from a lower precision test against $-b_2/a_2$,
 since $r_2^- \le -b_2/a_2 \le r_2^+$.
 
-\subsection{Resultant}
-The resultant method computes the order of two intersections from the
-resultant for their polynomials, which can be written as the
-determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
-The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
-p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined in Equation
-\ref{eq:sylv}:
 \begin{equation}
   res(P, Q)=\begin{pmatrix}
     p_m & \dots & & p_0 & 0 & & 0\\
@@ -187,6 +180,13 @@ p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined in Equation
   \label{eq:sylv}
 \end{equation}
 
+\subsection{Resultant}
+The resultant method computes the order of two intersections from the
+resultant for their polynomials, which can be written as the
+determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
+The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
+p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined as in Equation
+\ref{eq:sylv}.
 The resultant is also the product of the differences of $P$'s roots,
 $a_1$, \dots, $a_n$, and $Q$'s roots, $b_1$, \dots, $b_m$, as in
 Equation~\ref{eq:resultant}.~\cite[Section~6.4]{cheeyap}
@@ -216,12 +216,11 @@ The determinant can be computed with half the precision and fewer
 floating point operations than repeated squaring to correctly compute
 the sign of the differences of roots of the polynomials.
 
-Computing a general $4\times 4$ determinant would cost about 120
+Computing a general $4{\times} 4$ determinant takes about 120
 multiplications, and computing the determinant of the Sylvester matrix
-itself would naively take~$35$ FLOPs for each comparison.  We do better by writing
+itself would naively take~$35$ FLOPs for each comparison.  We can do better in Equation~\ref{eq:sylvpoly} by writing
 the determinant in terms of the discriminants and other
-precomputed $2\times 2$ minors from each polynomial, as in Equation
-\ref{eq:sylvpoly}.  This brings us to 11 FLOPs per comparison, with an
+precomputed $2{\times} 2$ minors from each polynomial.  This brings us to 11 FLOPs per comparison, with an
 initialization cost of 7 FLOPs per intersection.
 
 \begin{figure*}
@@ -248,7 +247,7 @@ initialization cost of 7 FLOPs per intersection.
 \end{figure*}
 
 \section{Experimental Evaluation}
-We experimentaly evaluated  the resultant method, and the  approximate method, with both machine
+We experimentally evaluated  the  resultant method  and the  approximate computation method with both machine
 precision and extended precision.  Repeated Squaring is dominated by the other methods so was not tested.
 
 We created two types of test scenes that had touching surfaces so that
@@ -300,20 +299,20 @@ to determine the order, and an appropriate value is returned.
 
 We ran tests on three computers with different speeds and operating systems; we name them by their operating systems.
 
-\paragraph{Ubuntu} had  two Xeon E5-2643 processors \Jack{each with 4 OR each with 2} cores and 
+\noindent{\bf Ubuntu} had  two Xeon E5-2643 processors \Jack{each with 4 OR each with 2} cores and 
 10 MB caches, and a total of 32 GB of DDR3 memory running
 clocked at 1.6 GHz.  It  ran Ubuntu 14.04, kernel version 3.13, and GCC 5.2 was used to compile the code.
 The tests were run with the default performance manager with a
 maximum CPU clock of 3.3 GHz, with nice value of $-20$.
 
-\paragraph{Arch} was 
+\noindent{\bf Arch} was 
 a Core i3 M370 processor with 2 cores, a 3 MB cache, and 4 GB of DDR3
 memory clocked at 1 GHz.  It ran an up-to-date installation of Arch Linux, kernel version 4.4, and
 GCC 5.3 was used to compile the code.  For the tests, the performance
 manager was set to keep the CPU clock at 2.4 GHz, and the process was
 run with a nice value of $-20$.
 
-\paragraph{Gentoo} was a Core 2 Duo E6550 processor with two cores,
+\noindent{\bf Gentoo} was a Core 2 Duo E6550 processor with two cores,
 a 4 MB cache, and 8 GB of DDR2 memory clocked at 667 MHz.  It ran an
 up-to-date installation of Gentoo Linux, kernel version 4.0 and GCC
 5.3 was used to compile the code.  For the tests, the performance
