@@ -1,29 +1,23 @@
 \begin{tabular}{|l|l|ll|lll|l|}
 \hline
-Machine & Scene & Method & Disagreements & $\frac{\text{ms}}{\text{Quadric}}$ & $\frac{\text{ms}}{\text{Comparison}}$ & Constant $\text{ms}$ & Residual ($\text{ms}^2$)\\
+Scene & Machine & Method & Errors & ms/Quadric & ms/Comp & Const ms & $\sum$ Residual ($\text{ms}^2$)\\
 \hhline{|=|=|==|===|=|}
-Ubuntu & Packed & Increased Prec. & \hphantom{1}--- & -- & \hphantom{-}0.06823 & \hphantom{-}5.399 & \hphantom{10}1194.8288\\
-& Spheres & Approximate & 103 & -- & -0.009685 & \hphantom{-}5.399 & \hphantom{10}1161.2192\\
-&& Resultant & \hphantom{1}89 & -- & \hphantom{-}0.05687 & \hphantom{-}5.408 & \hphantom{10}1194.1208\\
-\hline
-& Nested & Increased Prec. & \hphantom{1}--- & 0.004163 & \hphantom{-}0.07064 & -0.002835 & \hphantom{1}28554.479\\
-& Spheres & Approximate & \hphantom{1}13 & 0.004098 & \hphantom{-}0.000255 & -0.001070 & \hphantom{10}2806.9520\\
-&& Resultant & \hphantom{10}0 & 0.004309 & \hphantom{-}0.05846 & \hphantom{-}0.007079 & \hphantom{1}32989.590\\
-\hline
-Arch & Packed & Increased Prec. & \hphantom{1}--- & -- & \hphantom{-}0.1364 & \hphantom{-}4.893 & \hphantom{100}334.98312\\
-& Spheres & Approximate & \hphantom{1}85 & -- & \hphantom{-}0.000304 & \hphantom{-}4.942 & \hphantom{100}316.04740\\
-&& Resultant & \hphantom{1}75 & -- & \hphantom{-}0.1139 & \hphantom{-}4.921 & \hphantom{100}327.24112\\
-\hline
-& Nested & Increased Prec. & \hphantom{1}--- & 0.003835 & \hphantom{-}0.1157 & \hphantom{-}0.05856 & 582387.69\\
-& Spheres & Approximate & \hphantom{1}11 & 0.003864 & \hphantom{-}0.000591 & -0.01970 & \hphantom{10}7533.7867\\
-&& Resultant & \hphantom{10}1 & 0.004088 & \hphantom{-}0.09580 & \hphantom{-}0.05074 & 558251.79\\
-\hline
-Gentoo & Packed & Increased Prec. & \hphantom{1}--- & -- & \hphantom{-}0.1711 & \hphantom{-}4.522 & \hphantom{100}255.93646\\
-& Spheres & Approximate & \hphantom{1}94 & -- & \hphantom{-}0.004651 & \hphantom{-}4.513 & \hphantom{100}256.48723\\
-&& Resultant & \hphantom{1}84 & -- & \hphantom{-}0.1424 & \hphantom{-}4.551 & \hphantom{100}258.49985\\
-\hline
-& Nested & Increased Prec. & \hphantom{1}--- & 0.003670 & \hphantom{-}0.1639 & \hphantom{-}0.02020 & \hphantom{1}62122.965\\
-& Spheres & Approximate & \hphantom{1}19 & 0.003562 & \hphantom{-}0.000446 & -0.003482 & \hphantom{10}3327.8361\\
-&& Resultant & \hphantom{10}0 & 0.003892 & \hphantom{-}0.1372 & \hphantom{-}0.06507 & 176409.02\\
+\hhline{|~|-|--|---|-|}
+Packed & Gentoo & Approximate & \hphantom{00}0 & -- & \hphantom{-}0.170 & \hphantom{-}4.53 & \hphantom{0000}\hphantom{-}28.0337\\
+Spheres &  & Increased Prec. & \hphantom{00}0 & -- & \hphantom{-}0.00125 & \hphantom{-}4.51 & \hphantom{0000}\hphantom{-}27.6358\\
+ &  & Approximate & \hphantom{-}--- & -- & \hphantom{-}0.170 & \hphantom{-}4.53 & \hphantom{0000}\hphantom{-}28.0337\\
+\hhline{|~|-|--|---|-|}
+ & Arch & Approximate & \hphantom{00}0 & -- & \hphantom{-}0.180 & \hphantom{-}4.53 & \hphantom{00000}\hphantom{-}2.63014\\
+ &  & Increased Prec. & \hphantom{00}0 & -- & \hphantom{-}0.00920 & \hphantom{-}4.53 & \hphantom{00000}\hphantom{-}2.45960\\
+ &  & Approximate & \hphantom{-}--- & -- & \hphantom{-}0.180 & \hphantom{-}4.53 & \hphantom{00000}\hphantom{-}2.63014\\
+\hhline{|-|-|--|---|-|}
+\hhline{|~|-|--|---|-|}
+Nested & Gentoo & Approximate & \hphantom{00}0 & 0.00366 & \hphantom{-}0.163 & -0.00707 & \hphantom{0}\hphantom{-}19464.8\\
+Spheres &  & Increased Prec. & \hphantom{00}0 & 0.00349 & \hphantom{-}0.000497 & -0.00436 & \hphantom{00}\hphantom{-}1318.61\\
+ &  & Approximate & \hphantom{-}--- & 0.00366 & \hphantom{-}0.163 & -0.00707 & \hphantom{0}\hphantom{-}19464.8\\
+\hhline{|~|-|--|---|-|}
+ & Arch & Approximate & \hphantom{00}0 & 0.00350 & \hphantom{-}0.164 & \hphantom{-}0.0230 & \hphantom{0000}\hphantom{-}45.3631\\
+ &  & Increased Prec. & \hphantom{00}0 & 0.00348 & \hphantom{-}0.000397 & \hphantom{-}0.000262 & \hphantom{00000}\hphantom{-}1.12566\\
+ &  & Approximate & \hphantom{-}--- & 0.00350 & \hphantom{-}0.164 & \hphantom{-}0.0230 & \hphantom{0000}\hphantom{-}45.3631\\
 \hline
 \end{tabular}
