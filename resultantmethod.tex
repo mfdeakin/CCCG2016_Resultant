@@ -49,7 +49,7 @@
   considers the arithmetic precision required to compute the order of
   intersection points of two quadrics along the line segment. When the
   orders of all but one pair of intersections are known, we show that a
-  resultant can resolve the order of the remaining paiir using only
+  resultant can resolve the order of the remaining pair using only
   half the precision that may be required to eliminate radicals by
   repeated squaring. We compare the time and accuracy of our technique
   with converting to extended precision to calculate roots.
@@ -90,7 +90,7 @@ computation as IEEE 754 doubles; $w=33$ as pairs of doubles.)
 These definitions are motivated by a problem from David Griesheimer,
 of Bettis Labs: rather than tracking a particle through quadric
 surfaces in a CAD model, would it be more robust to compute the
-intervals of intersections with a segement?  We compare three methods
+intervals of intersections with a segment?  We compare three methods
 to order line-quadric intersections.  Our methods, particularly the
 third, are  developed and tested for the case where only
 one pair of roots has a difference that is potentially overwhelmed by
@@ -257,10 +257,10 @@ computation method with both machine precision and extended precision.
 Repeated Squaring is dominated by the other methods so was not tested.
 
 We created two types of test scenes that had touching surfaces so that
-random lines migh have some chance (albeit small) to give incorrect
+random lines might have some chance (albeit small) to give incorrect
 orders under approximation, and count the number of disagreements.  We
 evaluated time per comparison for each method on computers with
-different processors.  Finally, by varying tne number of surfaces in
+different processors.  Finally, by varying the number of surfaces in
 the second type of scene, we could use linear regression to determine
 the contribution to running time from per quadric and per comparison
 terms.
@@ -304,7 +304,7 @@ precision approximation and the resultant method, the difference of
 the roots is compared against a threshold.  If the difference was
 smaller than a threshold of $2^{-16}$, the more accurate method
 provided is used to determine the order, and an appropriate value is
-returned.  This occured infrequently for a random line, and is only
+returned.  This occurred infrequently for a random line, and is only
 expected to occur a few times for every 100k lines.
 
 We ran tests on two computers with different speeds and operating
@@ -330,7 +330,7 @@ was capable of about 1.2 times more FLOPS than the Gentoo computer.
 
 \subsection{Test Scenes}
 We created two types of test scenes: a single scene of Packed Spheres
-and and a set of scenes of Nested Spheres.  The test scenes consisted
+and  a set of scenes of Nested Spheres.  The test scenes consisted
 of quadric surfaces stored as IEEE754 single precision floating point
 numbers.  We preferred spheres and ellipsoids, since any intersecting
 line would intersect twice, possibly with a repeated root.  Sorting
