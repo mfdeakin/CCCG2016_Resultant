@@ -15,6 +15,7 @@
 \usepackage{float}
 \usepackage{color}
 \usepackage{dcolumn}
+%\usepackage{url}
 
 \usepackage{lipsum}
 
@@ -119,8 +120,9 @@ The rounding of floating point arithmetic means that even with
 representable input, the correct order is not guaranteed unless we
 establish a gap or separation theorem (which are also established
 using resultants~\cite{brownawell2009lower,emiris2010dmm}) and compute with sufficient
-precision.  Without a guarantee, this method requires very little
-computation.  Computing both roots takes $12$ FLOPs, with one more to
+precision. Determining this precision is a longstanding open problem~\cite{demaine33open}.
+Without a guarantee, this method requires very little computation.  
+ Computing both roots takes $12$ FLOPs, with one more to
 compute the sign of the difference.  Moreover, the roots can be reused
 in a scene of many quadrics.
 
@@ -423,16 +425,16 @@ catch any hidden initialization costs, though we expect this to
 contain mostly noise.
 
 \section{Experimental Results}
-The results of the experiments are shown in Table \ref{tab:times}.
-First, it is clear that increasing the precision of a computation is
+The results of the experiments are shown in Table~\ref{tab:times}.
+The first thing to notice is that increasing the precision of a computation is
 not enough to guarantee that the result will be computed correctly.
 Despite increasing the precision of the computations to~$24\times$ the
 initial precision, the increased precision approximation still fails
 for~$1044/11000$ of the random lines in the Nested Spheres scene.  It
 did, however, perform significantly better than the original
 calculation, which failed for~$8272/11000$ of the lines.  More lines
-are needed to find lines which cause errors in the Packed Spheres
-scene, but we can expect several to occur by the
+are needed to find examples that cause errors in the Packed Spheres
+scene, but based on past runs, we can expect several to occur by the
 $100\text{k}^\text{th}$ test.
 
 Despite guaranteeing correctness, the resultant method still performed
@@ -449,7 +451,7 @@ Nested Spheres scenes, and the Packed Spheres scene on the Gentoo
 machine.
 
 After removing the time per quadric basis in the tests with the Nested
-Spheres scenes, the constant term appears to mostly be noise,
+Spheres scenes, the constant term appears to mostly be noise,\Jack{this comment is based on your past experiments, which you should mention so the reader understands where this is coming from.}
 suggesting that we obtained most of the useful information from the
 measured times.  This suggests the time per quadric is the main
 contributor to the constant time in the tests with the Packed Spheres
@@ -498,7 +500,7 @@ We have assumed that we know the order of all roots except one
 pair. Even if one's application does not provide this information, for
 quadratic equations it is relatively easy to obtain using lower
 precision than it takes to compare roots.  The zero of the derivative
-$x_i=-b_i/a_i$ separates $r_i^-$ and $r_i^+$ by twice the
+$x_i=-b_i/a_i$ separates $r_i^-$ and $r_i^+$ by value of the
 discriminant.  If $x_1=x_2$ then comparing squared discriminants tells
 us all we need to know about root orders.  When, wlog, $x_1<x_2$, we
 use the signs of both quadratics at $x_1$ and $x_2$ to bound roots to
