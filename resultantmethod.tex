@@ -440,14 +440,13 @@ that cause errors in the Packed Spheres scene, but based on previous
 experiments, we can expect several to occur by the
 $100\text{k}^\text{th}$ test.
 
-Despite guaranteeing correctness, the resultant method still performed
+In addition to guaranteeing correctness, the resultant method also performed
 well against the generic increased precision method.  For the set of
 Nested Spheres scenes, it cost slightly more to compute the order of
-intersections on a time per quadric basis, this is likely time that
-was saved because of the caching of intermediate values, but was not
-significantly more expensive.
+intersections on a time per quadric basis.  The approximate computation with increased precision can 
+ cache intermediate values more effectively, reducing its cost.
 
-The resultant method also performed extremely well on the time per
+The resultant method  performed extremely well on the time per
 comparison basis, as it actually beat the increased precision method
 by more than it lost out on in the time per quadric basis in the
 Nested Spheres scenes, and the Packed Spheres scene on the Gentoo
@@ -455,7 +454,7 @@ machine.
 
 After removing the time per quadric basis in the tests with the Nested
 Spheres scenes, the constant term appears somewhat nonsensical.  From
-previous experiments, we have concluded that it is mostly noise,
+previous experiments, we have concluded that this is mostly noise,
 suggesting that we obtained most of the useful information from the
 measured times.  This suggests the time per quadric is the main
 contributor to the constant time in the tests with the Packed Spheres
