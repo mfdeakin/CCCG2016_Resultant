@@ -3,7 +3,7 @@
 
 \usepackage{amssymb, amsmath}
 \usepackage{graphicx}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -493,10 +493,16 @@ naively using increased precision to improve accuracy is not enough to
 eliminate errors, and that one must take into account the operations
 being used and the ranges of the input.
 
-A problem left unsolved here is how to compute the quadric
-intersection order correctly when the order of mutliple roots are
-undetermined.  This can be done with the resultant and some minor
-amount of algebra, but has not been evaluated
+We have assumed that we know the order of all roots except one
+pair. Even if one's application does not provide this information, for
+quadratic equations it is relatively easy to obtain using lower
+precision than it takes to compare roots.  The zero of the derivative
+$x_i=-b_i/a_i$ separates $r_i^-$ and $r_i^+$ by twice the
+discriminant.  If $x_1=x_2$ then comparing squared discriminants tells
+us all we need to know about root orders.  When, wlog, $x_1<x_2$, we
+use the signs of both quadratics at $x_1$ and $x_2$ to bound roots to
+intervals, and can again compare squared discriminants to reveal the
+order for all but one pair.
 
 \section{Acknowledgment}
 We thank David Griesheimer for discussions on this problem, and both
