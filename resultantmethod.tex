@@ -396,34 +396,33 @@ non-zero terms were constrained between -20 and 0.
 \end{figure}
 
 \subsection{Analysis}
-% Work on this section
 The time that it takes to compute the order of intersections between a
 given line and a scene of quadric surfaces is expected to be linear in
-both the number of accurate comparisons made and the number of quadric
-surfaces.  The number of accurate comparisons is expected to be
-linearly related to the time spent because these comparisons are
-significantly more expensive than regular comparisons.  The number of
-quadrics is expected to be linearly related because each one must be
-checked to verify the line does not intersect it.  This check is done
-in constant time, so the number of checks
+both the number of quadric surfaces and the number of accurate
+comparisons made.  The number of accurate comparisons is clearly going
+to be linearly related to the time spent due to how expensive they
+are.
 
-To analyze the Packed Spheres timing data, we used least
-squares with the number of comparisons made as our independent
-variable to compute a linear fit to the timing data.
+The number of quadrics, on the other hand, can significantly affect
+the number of intersections in the list to be sorted, especially in
+antagonistic scenes.  However, most of the time spent sorting will be
+accounted for by the time spent making accurate comparisons, which we
+have already accounted for.  Thus, the remaining time will instead
+come from computing the approximate roots, which is linear.
+
+To analyze the Packed Spheres timing data, we used least squares to
+fit a line to the number of comparisons made and the timing data.  A
+constant term was also computed for the time taken computing the
+approximate roots.
 
 To analyze the set of Nested Spheres scenes, we aggregated the test
-results for the scenes so that we could find the best fitting plane
-with the number of comparisons made and the number of quadric surfaces
-as our independent variables to compute a linear fit to the timing
-data.  Fitting the time it takes to make a comparison to a linear
-relationship makes sense, as the bulk of the sorting time is taken up
-by performing these comparisons.  It also makes sense for the time to
-be linearly related to the number of quadrics in the scene, as the
-cached values are only computed once for each quadric, and are likely
-to significantly affect the time a comparison takes.
+results for the scenes so that we could use least squares to fit a
+plane to the number of comparisons made, the number of quadric
+surfaces, and the timing data.  A constant term was also computed to
+catch any hidden initialization costs, though we expect this to
+contain mostly noise.
 
 \section{Experimental Results}
-% Work on this section
 The results of the experiments are shown in Table \ref{tab:times}.
 First, it is clear that increasing the precision of a computation is
 not enough to guarantee that the result will be computed correctly.
@@ -460,11 +459,13 @@ scene.
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
   \caption{Evaluation Time for a Line (ms) vs. the Number of
     Comparisons; Sorting the intersections of 1k lines in each of the
-    Nested Spheres test scenes on the Gentoo machine; {\bf X's:
-      Approximation Method at $24\times$ the Input Precision}; {\bf
-      Pluses: Resultant Method}.  The least squares coefficient for
-    the time per quadrics has been subtracted out to better show the
-    actual fit.}
+    Nested Spheres test scenes on the Gentoo machine; {\bf Red Dot's
+      (above the bars): Approximation Method at $24\times$ the Input
+      Precision}; {\bf Blue Bars (beneath the dots): Resultant
+      Method}.  The least squares coefficient for the time per
+    quadrics has been subtracted out to better show the actual
+    fit. The lines show the respective least squares fits without the
+    quadric term.}
   \label{fig:linefit}
 \end{figure}
 
