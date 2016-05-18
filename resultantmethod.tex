@@ -398,12 +398,14 @@ non-zero terms were constrained between -20 and 0.
 \end{figure}
 
 \subsection{Analysis}
+% Lead them to their own conclusions, don't tell them 
 The time that it takes to compute the order of intersections between a
 given line and a scene of quadric surfaces is expected to be linear in
 both the number of quadric surfaces and the number of accurate
-comparisons made.  The number of accurate comparisons is clearly going
-to be linearly related to the time spent due to how expensive they
-are.
+comparisons made.  Because performing accurate comparisons is so much
+more expensive than normal comparisons, we expect there to be a clear
+linear relation between the number of accurate comparisons performed
+and the time it takes to perform the sorting.
 
 The number of quadrics, on the other hand, can significantly affect
 the number of intersections in the list to be sorted, especially in
@@ -426,15 +428,16 @@ contain mostly noise.
 
 \section{Experimental Results}
 The results of the experiments are shown in Table~\ref{tab:times}.
-The first thing to notice is that increasing the precision of a computation is
-not enough to guarantee that the result will be computed correctly.
-Despite increasing the precision of the computations to~$24\times$ the
-initial precision, the increased precision approximation still fails
-for~$1044/11000$ of the random lines in the Nested Spheres scene.  It
-did, however, perform significantly better than the original
-calculation, which failed for~$8272/11000$ of the lines.  More lines
-are needed to find examples that cause errors in the Packed Spheres
-scene, but based on past runs, we can expect several to occur by the
+The first thing to notice is that increasing the precision of a
+computation is not enough to guarantee that the result will be
+computed correctly.  Despite increasing the precision of the
+computations to~$24\times$ the initial precision, the increased
+precision approximation still fails for~$1044/11000$ of the random
+lines in the Nested Spheres scenes.  It did, however, perform
+significantly better than the original calculation, which failed
+for~$8272/11000$ of the lines.  More lines are needed to find examples
+that cause errors in the Packed Spheres scene, but based on previous
+experiments, we can expect several to occur by the
 $100\text{k}^\text{th}$ test.
 
 Despite guaranteeing correctness, the resultant method still performed
@@ -451,11 +454,12 @@ Nested Spheres scenes, and the Packed Spheres scene on the Gentoo
 machine.
 
 After removing the time per quadric basis in the tests with the Nested
-Spheres scenes, the constant term appears to mostly be noise,\Jack{this comment is based on your past experiments, which you should mention so the reader understands where this is coming from.}
+Spheres scenes, the constant term appears somewhat nonsensical.  From
+previous experiments, we have concluded that it is mostly noise,
 suggesting that we obtained most of the useful information from the
 measured times.  This suggests the time per quadric is the main
 contributor to the constant time in the tests with the Packed Spheres
-scene.
+scene as we expected.
 
 \begin{figure}
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
