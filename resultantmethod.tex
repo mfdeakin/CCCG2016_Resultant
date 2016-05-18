@@ -165,6 +165,17 @@ $\sign(r_1^\pm-r_2^\mp)$ when computing $\sign(r_1^\pm-r_2^\pm)$, but
 we can learn this from a lower precision test against $-b_2/a_2$,
 since $r_2^- \le -b_2/a_2 \le r_2^+$.
 
+\subsection{Resultant}
+This method was previously described in \cite{fastaccuratefp}, but a
+description is included here for completeness.
+
+The resultant method computes the order of two intersections from the
+resultant for their polynomials, which can be written as the
+determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
+The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
+p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined as in Equation
+\ref{eq:sylv}.
+
 \begin{equation}
   res(P, Q)=\begin{pmatrix}
     p_m & \dots & & p_0 & 0 & & 0\\
@@ -179,13 +190,6 @@ since $r_2^- \le -b_2/a_2 \le r_2^+$.
   \label{eq:sylv}
 \end{equation}
 
-\subsection{Resultant}
-The resultant method computes the order of two intersections from the
-resultant for their polynomials, which can be written as the
-determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
-The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
-p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined as in Equation
-\ref{eq:sylv}.
 The resultant is also the product of the differences of $P$'s roots,
 $a_1$, \dots, $a_n$, and $Q$'s roots, $b_1$, \dots, $b_m$, as in
 Equation~\ref{eq:resultant}.~\cite[Section~6.4]{cheeyap}
@@ -421,37 +425,36 @@ to significantly affect the time a comparison takes.
 \section{Experimental Results}
 % Work on this section
 The results of the experiments are shown in Table \ref{tab:times}.
-Each method took approximately the same amount of time to process each
-quadric, though the resultant method consistently took the longest.
-This is because the resultant method caches some of the intermediate
-values when the first comparison is made, shifting some portion of the
-cost from the ms/Comp term to the ms/Quadric term.  The
-amount that is shifted is determined by how many quadrics a random
-line can be expected to intersect, and how many ambiguous orderings a
-single line-quadric intersection will be involved in.  The increased
-precision approximation method also took longer than the machine
-precision approximation method for essentially the same reason as the
-resultant method.  It's not entirely clear why it took less time than
-the resultant method, as it performs harder computations on the first
-use of the quadrics roots than the resultant.
+First, it is clear that increasing the precision of a computation is
+not enough to guarantee that the result will be computed correctly.
+Despite increasing the precision of the computations to~$24\times$ the
+initial precision, the increased precision approximation still fails
+for~$1044/11000$ of the random lines in the Nested Spheres scene.  It
+did, however, perform significantly better than the original
+calculation, which failed for~$8272/11000$ of the lines.  More lines
+are needed to find lines which cause errors in the Packed Spheres
+scene, but we can expect several to occur by the
+$100\text{k}^\text{th}$ test.
 
-The second term is approximately how much time each comparison takes.
-Not surprisingly, the machine precision method took very little time
-per comparison.  This is because nearly all of it's work is done on a
-per quadric basis - the roots are calculated for each quadric once,
-and only a subtraction is required for each comparison. The resultant
-method also performed significantly better than the increased
-precision method on a per comparison basis.  This is as expected,
-given the reduction in the amount of precision, the number of FLOPs
-required, and the lack of operations such as square roots and
-divisions.
+Despite guaranteeing correctness, the resultant method still performed
+well against the generic increased precision method.  For the set of
+Nested Spheres scenes, it cost slightly more to compute the order of
+intersections on a time per quadric basis, this is likely time that
+was saved because of the caching of intermediate values, but was not
+significantly more expensive.
 
-The constant term appears to be rather meaningless when we measure the
-ms/Quadric term.  This is good, because it shows that when the
-ms/Quadric term is not measured, that is mainly what the constant term
-consists of.  Thus, we expect, and observe the same results as in the
-ms/Quadric term.  It also means there are probably not any other terms
-which should be considered.
+The resultant method also performed extremely well on the time per
+comparison basis, as it actually beat the increased precision method
+by more than it lost out on in the time per quadric basis in the
+Nested Spheres scenes, and the Packed Spheres scene on the Gentoo
+machine.
+
+After removing the time per quadric basis in the tests with the Nested
+Spheres scenes, the constant term appears to mostly be noise,
+suggesting that we obtained most of the useful information from the
+measured times.  This suggests the time per quadric is the main
+contributor to the constant time in the tests with the Packed Spheres
+scene.
 
 \begin{figure}
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
@@ -484,16 +487,15 @@ is linearly coorelated with the number of precision increases.
 \end{table*}
 
 \section{Conclusion}
-In this paper we showed how the resultant method can improve the
-accuracy in comparing a single line-quadric intersections at a much
-lower cost than simply increasing the amount of precision.  This
-method also satisfies our notion of correctness, unlike the
-approximation method.  This method is applicable in many cases and can
-provide significant improvements to performance over the regular
-method of increasing precision.
+In this paper we showed how the resultant method can guarantee the
+correct order of line-quadric intersections at a similar cost to using
+an increased precision approximation method.  We have also shown that
+naively using increased precision to improve accuracy is not enough to
+eliminate errors, and that one must take into account the operations
+being used and the ranges of the input.
 
-A remaining problem to solve is computing the intersection order
-correctly when the order of mutliple roots is undetermined.  When a
+A problem left unsolved here is how to compute the intersection order
+correctly when the order of mutliple roots are undetermined.  When a
 shared root is detected, it would be easy to determine if the other
 roots are shared as well with the discriminants.  Because the terms of
 the discriminants are fast to compute exactly, they could be compared
