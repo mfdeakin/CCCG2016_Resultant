@@ -460,8 +460,7 @@ scene.
   \includegraphics[width=0.55\textwidth]{imgs/hardEllipsoidsSingle_gentoo_adjusted.png}
   \caption{Evaluation Time for a Line (ms) vs. the Number of
     Comparisons; Sorting the intersections of 1k lines in each of the
-    Nested Spheres test scenes on the Gentoo machine; {\bf Circles:
-      Approximation Method at Input Precision}; {\bf X's:
+    Nested Spheres test scenes on the Gentoo machine; {\bf X's:
       Approximation Method at $24\times$ the Input Precision}; {\bf
       Pluses: Resultant Method}.  The least squares coefficient for
     the time per quadrics has been subtracted out to better show the
@@ -494,15 +493,10 @@ naively using increased precision to improve accuracy is not enough to
 eliminate errors, and that one must take into account the operations
 being used and the ranges of the input.
 
-A problem left unsolved here is how to compute the intersection order
-correctly when the order of mutliple roots are undetermined.  When a
-shared root is detected, it would be easy to determine if the other
-roots are shared as well with the discriminants.  Because the terms of
-the discriminants are fast to compute exactly, they could be compared
-exactly relatively easily.  Since the discriminant is quadratically
-related to the distance between the roots of a polynomial, this will
-tell us exactly if both roots are shared, and if not, the order of the
-non-shared roots.
+A problem left unsolved here is how to compute the quadric
+intersection order correctly when the order of mutliple roots are
+undetermined.  This can be done with the resultant and some minor
+amount of algebra, but has not been evaluated
 
 \section{Acknowledgment}
 We thank David Griesheimer for discussions on this problem, and both
