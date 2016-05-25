@@ -21,25 +21,24 @@ and discriminant $D_B=C_B^2-\frac{c_B}{a_B}$.\\
 The table below describes the cases where roots are not repeated and
 the discriminants are not equal.  wlog, let $0 < D_B < D_R$.
 
-\begin{tabular}{|l|ll|l|l|}
-  \hline Case & Resultant Sign & $\sign(C_R-C_B)$ & $\sign(P_R(C_B))$
-  & $\sign(D_R-(C_R-C_B)^2)$\\ \hline
+\begin{tabular}{|l|ll|l|}
+  \hline Case & Resultant Sign & $\sign(C_R-C_B)$ &
+  $\sign(P_R(C_B))\sign(a_R)$\\ \hline
   \includegraphics[width=100pt]{imgs/root_orderings_case1.png} & + & +
-  & $\pm$ &
-  $-$\\ \includegraphics[width=100pt]{imgs/root_orderings_case4.png} &
-  + & + & $\mp$ &
-  $+$\\ \includegraphics[width=100pt]{imgs/root_orderings_case5.png} &
-  + & - & $\mp$ &
-  $+$\\ \includegraphics[width=100pt]{imgs/root_orderings_case8.png} &
-  + & - & $\pm$ &
-  $-$\\ \includegraphics[width=100pt]{imgs/root_orderings_case2.png} &
-  - & + & $\pm$ &
-  $-$\\ \includegraphics[width=100pt]{imgs/root_orderings_case3.png} &
-  - & + & $\mp$ &
-  $+$\\ \includegraphics[width=100pt]{imgs/root_orderings_case6.png} &
-  - & - & $\mp$ &
-  $+$\\ \includegraphics[width=100pt]{imgs/root_orderings_case7.png} &
-  - & - & $\pm$ & $-$\\ \hline
+  & + \\ \includegraphics[width=100pt]{imgs/root_orderings_case4.png}
+  & + & + & -
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case5.png} & +
+  & - & -
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case8.png} & +
+  & - & +
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case2.png} & -
+  & + & +
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case3.png} & -
+  & + & -
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case6.png} & -
+  & - & -
+  \\ \includegraphics[width=100pt]{imgs/root_orderings_case7.png} & -
+  & - & + \\ \hline
 \end{tabular}
 
 \noindent
@@ -51,13 +50,9 @@ We can compute $\sign(C_R-C_B)$ exactly as $\sign(b_R a_B - b_B
 a_R)\sign(a_R)\sign(a_B)$ at 2 times the coefficient precision.
 
 \noindent
-We can compute $\sign(P_R(C_B))$ exactly as $\sign(4 a_R b_B^2 - 4 b_R
-a_B b_B + c_R a_B^2)$ at 3 times the coefficient precision.  The exact sign is determined by the sign of $c_R$.
-
-\noindent
-We can compute $\sign(D_R-(C_R-C_B)^2)$ exactly as $\sign(a_R c_R
-a_B^2 + 8a_R b_R a_B b_B - 4 a_R^2 b_B^2)$ at 4 times the coefficient
-precision.\\
+We can compute $\sign(P_R(C_B))$ exactly as $\sign(a_R b_B^2 - 2 b_R
+a_B b_B + c_R a_B^2)$ at 3 times the coefficient precision.  The exact
+sign is determined by the sign of $a_R$.\\
 
 \noindent
 For the case where $D_R=D_B$, we can do better by just computing
