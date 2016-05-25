@@ -175,8 +175,7 @@ The resultant method computes the order of two intersections from the
 resultant for their polynomials, which can be written as the
 determinant of their Sylvester Matrix~\cite[Section~3.5]{cheeyap}.
 The general Sylvester Matrix for polynomials~$P(t)=p_m t^m + \dots +
-p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined as in Equation
-\ref{eq:sylv}.
+p_0$ and~$Q(t)=q_n t^n + \dots + q_0$ is defined as in Equation~\ref{eq:sylv}.
 
 \begin{equation}
   res(P, Q)=\begin{pmatrix}
@@ -308,21 +307,19 @@ returned.  This occurred infrequently for a random line, and is only
 expected to occur a few times for every 100k lines.
 
 We ran tests on two computers with different speeds and operating
-systems; we name them by their operating systems.
+systems:
 
 \noindent{\bf Arch} was a Core i3 M370 processor with 2 cores, a 3 MB
 cache, and 4 GB of DDR3 memory clocked at 1 GHz.  It ran an up-to-date
-installation of Arch Linux, kernel version 4.4, and GCC 6.0 was used
+installation of Arch Linux, kernel version 4.4, and used GCC 6.0
 to compile the code.  For the tests, the performance manager was set
-to keep the CPU clock at 2.4 GHz, and the process was run with a nice
-value of $-20$.
+to keep the CPU clock at 2.4 GHz, and the process was run at nice~$-20$.
 
 \noindent{\bf Gentoo} was a Core 2 Duo E6550 processor with two cores,
 a 4 MB cache, and 8 GB of DDR2 memory clocked at 667 MHz.  It ran an
-up-to-date installation of Gentoo Linux, kernel version 4.1 and GCC
-4.9 was used to compile the code.  For the tests, the performance
-manager was set to keep the CPU clock at 2.3 GHz, with a nice value of
-$-20$.
+up-to-date installation of Gentoo Linux, kernel version 4.1, and used GCC
+4.9 to compile the code.  For the tests, the performance
+manager was set to keep the CPU clock at 2.3 GHz, with nice~$-20$.
 
 A Geekbench benchmark was employed to estimate the floating point
 processor speeds, Arch 1702, and Gentoo 1408. Thus, on average, Arch
@@ -330,8 +327,8 @@ was capable of about 1.2 times more FLOPS than the Gentoo computer.
 
 \subsection{Test Scenes}
 We created two types of test scenes: a single scene of Packed Spheres
-and  a set of scenes of Nested Spheres.  The test scenes consisted
-of quadric surfaces stored as IEEE754 single precision floating point
+and  a set of scenes of Nested Spheres.  All test scenes consisted
+of quadric surfaces stored as 4$\times$4 matrices of IEEE754 single precision floating point
 numbers.  We preferred spheres and ellipsoids, since any intersecting
 line would intersect twice, possibly with a repeated root.  Sorting
 isolated single roots is easier, since, for example, the intersection
