@@ -2,6 +2,8 @@
 
 \usepackage{amssymb, amsmath}
 \usepackage{graphicx}
+\usepackage[paperwidth=242mm,paperheight=30cm,top=1cm,left=1cm,bottom=1cm,right=1cm]{geometry}
+\usepackage{multirow}
 
 \DeclareMathOperator{\sign}{sign}
 
@@ -19,28 +21,73 @@ and discriminant $D_B=C_B^2-\frac{c_B}{a_B}$.\\
 
 \noindent
 The table below describes the cases where roots are not repeated and
-the discriminants are not equal.  wlog, let $0 < D_B < D_R$.
+the discriminants are not equal.\\
+wlog, let $0 < D_B < D_R$.
+Let $R_{B1}, R_{R1}$ be the roots which we are trying to determine the order of,
+and $R_{B2}, R_{R2}$ be the other roots.
 
-\begin{tabular}{|l|ll|l|}
+\flushleft
+\begin{tabular}{|l|lll|ll|l|}
   \hline Case & Resultant Sign & $\sign(C_R-C_B)$ &
-  $\sign(P_R(C_B))\sign(a_R)$\\ \hline
-  \includegraphics[width=100pt]{imgs/root_orderings_case1.png} & + & +
-  & + \\ \includegraphics[width=100pt]{imgs/root_orderings_case4.png}
-  & + & + & -
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case5.png} & +
-  & - & -
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case8.png} & +
-  & - & +
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case2.png} & -
-  & + & +
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case3.png} & -
-  & + & -
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case6.png} & -
-  & - & -
-  \\ \includegraphics[width=100pt]{imgs/root_orderings_case7.png} & -
-  & - & + \\ \hline
-\end{tabular}
+  $\sign(P_R(C_B))\sign(a_R)$ & $\sign(R_{B1}-R_{B2})$ &
+  $\sign(R_{R1}-R_{R2})$ & $\sign(R_{B1}-R_{R1})$\\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case1.png}}
+  & \multirow{4}{*}{+} & \multirow{4}{*}{+} & \multirow{4}{*}{+}
+     & - & - & - \\
+  &&&& - & + & - \\
+  &&&& + & - & - \\
+  &&&& + & + & - \\ \hline
 
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case4.png}}
+  & \multirow{4}{*}{+} & \multirow{4}{*}{+} & \multirow{4}{*}{-}
+     & - & - & + \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & - \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case5.png}}
+  & \multirow{4}{*}{+} & \multirow{4}{*}{-} & \multirow{4}{*}{-}
+     & - & - & + \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & - \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case8.png}}
+  & \multirow{4}{*}{+} & \multirow{4}{*}{-} & \multirow{4}{*}{+}
+     & - & - & + \\
+  &&&& - & + & + \\
+  &&&& + & - & + \\
+  &&&& + & + & + \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case2.png}}
+  & \multirow{4}{*}{-} & \multirow{4}{*}{+} & \multirow{4}{*}{+}
+     & - & - & - \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & - \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case3.png}}
+  & \multirow{4}{*}{-} & \multirow{4}{*}{+} & \multirow{4}{*}{-}
+     & - & - & - \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & - \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case6.png}}
+  & \multirow{4}{*}{-} & \multirow{4}{*}{-} & \multirow{4}{*}{-}
+     & - & - & + \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & + \\ \hline
+  
+  \multirow{4}{*}{\includegraphics[width=100pt]{imgs/root_orderings_case7.png}}
+  & \multirow{4}{*}{-} & \multirow{4}{*}{-} & \multirow{4}{*}{+} & - & - & + \\
+  &&&& - & + & - \\
+  &&&& + & - & + \\
+  &&&& + & + & + \\ \hline
+\end{tabular}
+\vspace{1mm}\\
 \noindent
 We can compute the resultant sign exactly at 4 times the coefficient
 precision.
@@ -53,18 +100,21 @@ a_R)\sign(a_R)\sign(a_B)$ at 2 times the coefficient precision.
 We can compute $\sign(P_R(C_B))$ exactly as $\sign(a_R b_B^2 - 2 b_R
 a_B b_B + c_R a_B^2)$ at 3 times the coefficient precision.  The exact
 sign is determined by the sign of $a_R$.\\
+\vspace{3mm}
 
 \noindent
 For the case where $D_R=D_B$, we can do better by just computing
 $\sign(C_R-C_B)$ and $\sign(D_R-4(C_R-C_B)^2)$ exactly at 4 times the
 coefficient precision. These are sufficient to determine all of the
 cases.\\
+\vspace{3mm}
 
 \noindent
 For the case where $D_B=0$, we can do better by just computing
 $\sign(C_R-C_B)$ and $\sign(D_R-(C_R-C_B)^2)$ exactly at 4 times the
 coefficient precision. These are sufficient to determine all of the
 cases.\\
+\vspace{3mm}
 
 \noindent
 For the case where $D_B=D_R=0$, we can do better by just computing
