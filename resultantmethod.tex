@@ -48,29 +48,30 @@
   segment through a CAD model with quadric surfaces, this paper
   considers the arithmetic precision required to compute the order of
   intersection points of two quadrics along the line segment. When the
-  orders of all but one pair of intersections are known, we show that a
-  resultant can resolve the order of the remaining pair using only
-  half the precision that may be required to eliminate radicals by
-  repeated squaring. We compare the time and accuracy of our technique
-  with converting to extended precision to calculate roots.
+  orders of all but one pair of intersections are known, we show that
+  a resultant can be used to determine the order of the remaining pair
+  using only half the precision that may be required to eliminate
+  radicals by repeated squaring. We compare the time and accuracy of
+  our technique with converting to extended precision to calculate
+  roots.
 \end{abstract}
-
 
 \section{Introduction}
 In this work, we are concerned with ordering the points of
 line-quadric intersections in 3 dimensions, where the inputs are
 representable exactly using $w$-bit fixed-point numbers.  We will
 actually use floating point in storage and computation, but our
-guarantees will be for well-scaled inputs, which are easiest described
-as fixed-point.  A {\it representable point}~$q$ or {\it representable
-  vector}~$v$ is a $3$-tuple of representable numbers $(x, y, z)$. The
-line segment from point~$q$ to~$q+v$ is defined parametrically for
-$t\in [0,1]$ as $\ell(t)=q+tv$; note that there may be no
-representable points on line $\ell$ except its endpoints (and even
-$q+v$ may not be representable, if the addition carries to
+guarantees will be for well-scaled inputs, which are easiest to
+describe as fixed-point numbers.  A {\it representable point}~$q$ or
+{\it representable vector}~$v$ is a $3$-tuple of representable numbers
+$(x, y, z)$. The line segment from point~$q$ to~$q+v$ is defined
+parametrically for $t\in [0,1]$ as $\ell(t)=q+tv$; note that there may
+be no representable points on line $\ell$ except its endpoints (and
+even $q+v$ may not be representable, if the addition carries to
 $w+1$~bits.)
 
-A quadratic is an implicit surface defined by its 10 representable coefficients,
+A quadric is an implicit surface defined by its 10 representable
+coefficients,
 \begin{align*}Q(x, y, z)=q_{xx} x^2 &+ q_{xy} xy + q_{xz} xz + q_x x + \dots \\
 &+ q_{zz} z^2 + q_{z} z + q_c = 0.
 \end{align*}
@@ -102,8 +103,8 @@ ambiguous roots.
 This section outlines three methods---Approximate Comparison, Repeated
 Squaring, and Resultant---to sort the intersections with two quadrics,
 $Q_1$ and $Q_2$, with a given line $\ell(t)$, or equivalently, the
-roots of two quadratics, $a_1t^2+2b_1t+c_1=0$ and
-$a_2t^2+2b_2t+c_2=0$.  For each, we evaluate correctness, precision,
+roots of two quadratics, $a_1t^2-2b_1t+c_1=0$ and
+$a_2t^2-2b_2t+c_2=0$.  For each, we evaluate correctness, precision,
 and floating-point arithmetic operations (FLOPs) required.
 
 \subsection{Approximate Comparison}
@@ -119,12 +120,12 @@ as~$\sign(r_1^\pm-r_2^\pm)$.
 The rounding of floating point arithmetic means that even with
 representable input, the correct order is not guaranteed unless we
 establish a gap or separation theorem (which are also established
-using resultants~\cite{brownawell2009lower,emiris2010dmm}) and compute with sufficient
-precision. Determining this precision is a longstanding open problem~\cite{demaine33open}.
-Without a guarantee, this method requires very little computation.  
- Computing both roots takes $12$ FLOPs, with one more to
-compute the sign of the difference.  Moreover, the roots can be reused
-in a scene of many quadrics.
+using resultants~\cite{brownawell2009lower,emiris2010dmm}) and compute
+with sufficient precision. Determining this precision is a
+longstanding open problem~\cite{demaine33open}.  Without a guarantee,
+this method requires very little computation.  Computing both roots
+takes $12$ FLOPs, with one more to compute the sign of the difference.
+Moreover, the roots can be reused in a scene of many quadrics.
 
 We also use extended precision, where the multiplications and addition
 in the discriminants are calculated with $6w$ bits, square root and
@@ -158,7 +159,7 @@ of FLOPs.  Computing the unambiguous sign of the difference of the
 roots requires 15 FLOPs total, and correctly computing the final sign
 requires another 24 FLOPs.  Unfortunately, many of the computed terms
 require coefficients from both polynomials; only the discriminants,
-squares, and products can precomputed, which reduces the number of
+squares, and products can be precomputed, which reduces the number of
 FLOPs by 14.  This brings us to 25 FLOPs per comparison, with an
 initialization cost of 14 FLOPs per quadric.
 
@@ -222,10 +223,11 @@ the sign of the differences of roots of the polynomials.
 
 Computing a general $4{\times} 4$ determinant takes about 120
 multiplications, and computing the determinant of the Sylvester matrix
-itself would naively take~$35$ FLOPs for each comparison.  We can do better in Equation~\ref{eq:sylvpoly} by writing
-the determinant in terms of the discriminants and other
-precomputed $2{\times} 2$ minors from each polynomial.  This brings us to 11 FLOPs per comparison, with an
-initialization cost of 7 FLOPs per intersection.
+itself would naively take~$35$ FLOPs for each comparison.  We can do
+better in Equation~\ref{eq:sylvpoly} by writing the determinant in
+terms of the discriminants and other precomputed $2{\times} 2$ minors
+from each polynomial.  This brings us to 11 FLOPs per comparison, with
+an initialization cost of 7 FLOPs per intersection.
 
 \begin{figure*}
   \begin{equation*}
@@ -275,9 +277,9 @@ stored as single precision floats, with all machine precision
 computations performed as floats.  MPFR\cite{mpfr} was used to support
 arbitrary precision in both the approximate comparison and the
 resultant methods.  The approximate comparison method used $24\times$
-the precision of a float.  The resultant comparison method also used
-$24\times$ the precision of a float, to account for the range of
-exponents in the inputs.
+the precision of a float.  This was done to provide a more analogous
+comparison to the resultant comparison method, which also used
+$24\times$ the precision of a float.
 
 The first step of the evaluation for a line $\ell$ and quadric $Q$ was
 to determined if there was a real intersection by evaluating the
@@ -292,7 +294,7 @@ of surfaces, which tends to worry a physicist.)
 If the intersections are deemed to exist, the second step is to
 compute the roots at machine precision.  These roots are needed to
 determine if the order of a pair of intersections is ambiguous or not.
-Finally, the stl sort algorithm is used to sort the intersections.
+Finally, the STL sort algorithm is used to sort the intersections.
 The full process was timed in nanoseconds with the POSIX
 clock\_gettime function.
 
@@ -311,15 +313,17 @@ systems:
 
 \noindent{\bf Arch} was a Core i3 M370 processor with 2 cores, a 3 MB
 cache, and 4 GB of DDR3 memory clocked at 1 GHz.  It ran an up-to-date
-installation of Arch Linux, kernel version 4.4, and used GCC 6.0
-to compile the code.  For the tests, the performance manager was set
-to keep the CPU clock at 2.4 GHz, and the process was run at nice~$-20$.
+installation of Arch Linux, kernel version 4.4, and used GCC 6.0 to
+compile the code with ``-O3'' as the optimization level.  For the
+tests, the performance manager was set to keep the CPU clock at 2.4
+GHz, and the process was run at nice~$-20$.
 
 \noindent{\bf Gentoo} was a Core 2 Duo E6550 processor with two cores,
 a 4 MB cache, and 8 GB of DDR2 memory clocked at 667 MHz.  It ran an
-up-to-date installation of Gentoo Linux, kernel version 4.1, and used GCC
-4.9 to compile the code.  For the tests, the performance
-manager was set to keep the CPU clock at 2.3 GHz, with nice~$-20$.
+up-to-date installation of Gentoo Linux, kernel version 4.1, and used
+GCC 4.9 to compile the code with ``-O3'' as the optimization level.
+For the tests, the performance manager was set to keep the CPU clock
+at 2.3 GHz, and the process was run at nice~$-20$.
 
 A Geekbench benchmark was employed to estimate the floating point
 processor speeds, Arch 1702, and Gentoo 1408. Thus, on average, Arch
@@ -435,13 +439,14 @@ significantly better than the original calculation, which failed
 for~$8272/11000$ of the lines.  More lines are needed to find examples
 that cause errors in the Packed Spheres scene, but based on previous
 experiments, we can expect several to occur by the
-$100\text{k}^\text{th}$ test.
+$\text{k} \cdot 100^\text{th}$ test.
 
-In addition to guaranteeing correctness, the resultant method also performed
-well against the generic increased precision method.  For the set of
-Nested Spheres scenes, it cost slightly more to compute the order of
-intersections on a time per quadric basis.  The approximate computation with increased precision can 
- cache intermediate values more effectively, reducing its cost.
+In addition to guaranteeing correctness, the resultant method also
+performed well against the generic increased precision method.  For
+the set of Nested Spheres scenes, it cost slightly more to compute the
+order of intersections on a time per quadric basis.  The approximate
+computation with increased precision can cache intermediate values
+more effectively, reducing its cost.
 
 The resultant method  performed extremely well on the time per
 comparison basis, as it actually beat the increased precision method
@@ -473,7 +478,7 @@ scene as we expected.
 
 Figure \ref{fig:linefit} shows a plot of the results from one of the
 tests.  It appears to confirm our expectation that the time required
-is linearly coorelated with the number of precision increases.
+is linearly correlated with the number of precision increases.
 
 \begin{table*}
   \caption{Analysis of the timing of the Approximate Comparison and
