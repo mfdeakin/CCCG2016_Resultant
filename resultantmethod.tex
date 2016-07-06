@@ -268,18 +268,19 @@ terms.
  
 
 \subsection{Experimental Setup}
-All methods were implemented in C++, and were tested by computing the
-line-quadric intersection orders along random lines in scenes of
-quadric surfaces. The creation of these lines and quadric surfaces is
-described in the next subsection.  Machine precision tests were
-performed in IEEE 754, with quadratic coefficients and discriminants
-stored as single precision floats, with all machine precision
-computations performed as floats.  MPFR\cite{mpfr} was used to support
-arbitrary precision in both the approximate comparison and the
-resultant methods.  The approximate comparison method used $24\times$
-the precision of a float.  This was done to provide a more analogous
-comparison to the resultant comparison method, which also used
-$24\times$ the precision of a float.
+All methods were implemented in C++\cite{mfdeakin_2016_57108}, and
+were tested by computing the line-quadric intersection orders along
+random lines in scenes of quadric surfaces. The creation of these
+lines and quadric surfaces is described in the next subsection.
+Machine precision tests were performed in IEEE 754, with quadratic
+coefficients and discriminants stored as single precision floats, with
+all machine precision computations performed as floats.
+MPFR\cite{mpfr} was used to support arbitrary precision in both the
+approximate comparison and the resultant methods.  The approximate
+comparison method used $24\times$ the precision of a float.  This was
+done to provide a more analogous comparison to the resultant
+comparison method, which also used $24\times$ the precision of a
+float.
 
 The first step of the evaluation for a line $\ell$ and quadric $Q$ was
 to determined if there was a real intersection by evaluating the
